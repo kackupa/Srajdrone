@@ -1,9 +1,8 @@
 # Srajdrone
 
-Standalone desktop browser FPV combat prototype with an original fictional forest battlefield.
+Standalone desktop browser FPV combat game with an original fictional forest battlefield.
 
 ## Run
-
 Node.js 22+:
 ```
 npm install
@@ -13,40 +12,40 @@ npm run build
 ```
 Open http://127.0.0.1:5178 and click Begin operation.
 
-## Operation
+## Convoy Intercept
+Stop all three convoy vehicles before any escapes the forest road. A 12-second preparation countdown precedes staggered arrivals. The operation lasts at most 2:35, including preparation. The convoy route, entry/exit and incoming vehicle markers appear on the map. E still marks other visible enemies.
 
-Recon circles automatically at high altitude. Mouse aiming is independent of flight. WASD and Space/Ctrl temporarily override the aircraft; release movement to resume its high loop. Recon keeps orbiting while you fly an FPV.
+Each convoy vehicle destroyed earns 1,000 points. Completing the mission adds 10 points per remaining second (rounded up) and 150 for each drone below six used. A vehicle escaping, time expiring or losing recon fails the operation. FPV loss alone does not.
 
-Press E to mark a visible enemy and F to launch an FPV from the sheltered friendly forest team. The launch clearing is off the road, beside operators, equipment, a supply van, a timber dugout and camouflage netting. Space climbs through the clear opening.
+After each impact, shootdown or exhausted battery, the camera automatically returns to recon. There is no sortie return menu. After a successful hit, recon looks toward the destroyed target so the wreck and smoke remain visible. Mission success/failure appears as a compact report in recon; press N for the next intercept. Three encounter presets vary arrival gaps, speed and road direction. Escape also offers restart. Recon loss retains the terminal restart screen.
 
-Each FPV launches with 60 seconds of battery. Hovering and normal flight drain it at the same rate; moving with Shift held uses 1.8× power. The HUD shows charge, remaining normal-power time and elapsed flight time. Warnings appear at 15 and 7 seconds. Pause freezes the battery. Power depletion briefly cuts the feed and automatically returns to recon, with no explosion or result menu. The next launch gets a fresh battery. Recon has no battery countdown.
+Convoy wrecks remain for the operation. Vehicles do not respawn. Infantry and pillboxes are optional supporting targets and do not count toward convoy completion.
 
-The heart-shaped aiming reticle has an exact centre dot and highlights visible targets in both normal and thermal vision.
+## Flight and combat
+Recon circles high automatically. Mouse aims independently of flight; WASD and Space/Ctrl temporarily override the orbit. Recon keeps circling during FPV flight. F launches from the friendly off-road forest clearing.
 
-Hit a vehicle, soldier or pillbox to destroy it. After any FPV impact or shootdown, a brief impact effect switches directly back to recon. There is no sortie return menu, and another drone can launch immediately. Recon health persists; losing recon ends the operation and shows Restart.
+FPV acceleration and braking remain responsive. The camera has a wider base view, gentle sideways banking and a smooth boost field-of-view increase, plus synthesized wind/rotor audio. V toggles reduced motion (also in Pause), initially respecting the system preference. Reduced motion removes banking and the speed-dependent FOV expansion; zoom still works.
 
-Vehicles enter and leave on both roads. A vehicle must see a low drone in its forward viewing area with an unobstructed sightline to react. Trucks accelerate and swerve faster; tanks maneuver more slowly while their machine guns defend them. Soldiers and pillboxes fire on exposed drones. Tracking warnings, tracers and red damage flashes give feedback.
+Each FPV starts with 60 seconds of normal-power battery. Moving with Shift held drains 1.8× faster. Low/critical warnings appear at 15/7 seconds of normal-power capacity. Pause stops the battery and mission clock. Depletion briefly cuts the feed and restores recon. Recon has no battery countdown.
 
-Trees and solid fortifications block sight and fire. Two enemy trench sections have recessed floors, timber walls, duckboards and sandbags. Two pillboxes can be destroyed permanently during the operation; destroyed structures remain as rubble. Patrols walk the trench paths and roadside. Vehicle replacements keep the hunt going.
+The heart reticle's centre dot is the exact aim point. Normal and simulated thermal views support zoom. Vehicle crews need an unobstructed forward view of a nearby low drone to react; trucks evade faster than tanks. Soldiers move along their local defensive paths when alerted, crouch at their destination, then return to patrol after the threat clears. Aim labels report enemy reactions.
+
+Hits produce target-dependent bursts with fire, fragments, a dust ring and smoke. Vehicle/fortification wrecks emit smoke for 40 seconds and flames briefly. Cosmetic effects never block aiming or collision rays and have a 240-particle cap. Original synthesized explosions include a low-frequency impact.
 
 ## Controls
-
-- WASD: recon override / FPV forward, backward and strafe. FPV forward follows the view.
-- Mouse: aim; click the view to capture it.
+- WASD: recon override / FPV forward, backward and strafe.
+- Mouse or arrow keys: aim. Click view to capture mouse.
 - Space: climb. Ctrl or C: descend.
-- Shift: FPV boost. Release FPV movement to brake and hover.
-- Arrow keys: alternative aiming.
+- Either Shift: FPV boost. Release movement to brake and hover.
 - E: mark. F: launch FPV / manually switch to recon.
-- T: normal / simulated thermal. Wheel: zoom.
-- Escape: pause and clickable launch controls. M: mute.
+- T: normal / thermal. Wheel: zoom.
+- Escape: pause and clickable controls. M: mute. V: reduce flight motion.
+- N: next intercept after mission completion.
 
 ## Prototype boundaries
+TypeScript + Three.js + Vite; original procedural assets, no backend or saves. Original map, not extracted Google Maps data. Timber, earth, trees and concrete block sight/fire; camouflage netting is decorative.
 
-TypeScript + Three.js + Vite; original procedural assets, no backend or saves. Terrain scars, broken trees, vehicle camouflage and netting provide the first battlefield art pass. Netting is visual; solid timber, earth, trees and concrete provide gameplay cover.
+Movement, detection and weapons are fictional arcade abstractions. Targets use generous one-hit collision spheres. Infantry cover behavior follows local paths rather than general navigation. Vehicles do not avoid other vehicles or wrecks; smoke is cosmetic. No structural destruction simulation. Audio levels, mission balance, other browsers and low-end hardware need broader human playtesting.
 
-Movement, weapon behavior and detection are fictional arcade abstractions. Targets use generous one-hit collision spheres, including pillboxes. Trenches are recessed but have simple rectangular layouts. Trees use simplified drone collision volumes; solid cover uses swept box collision. Visibility/projectiles use rendered cover geometry. Roads have no vehicle-to-vehicle avoidance. Infantry and pillboxes do not respawn. Marks track surviving targets until they leave the map.
-
-Visual research and X access limits are recorded in [docs/VISUAL_REFERENCES.md](docs/VISUAL_REFERENCES.md).
-
-See [docs/QA.md](docs/QA.md) for actual checks and remaining limitations. Temporary browser artifacts are ignored under output/playwright/.
+See [docs/QA.md](docs/QA.md) for actual checks and [docs/VISUAL_REFERENCES.md](docs/VISUAL_REFERENCES.md) for prior visual research limits. Temporary browser artifacts live under ignored output/playwright/.
 

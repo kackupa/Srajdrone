@@ -597,3 +597,62 @@ button.primary kbd {
     top: 325px;
   }
 }
+
+#mission-clock {
+  margin-top: 9px;
+  font: bold 16px/1.4 monospace;
+  color: #ffe0a1;
+}
+#convoy-progress {
+  margin-top: 5px;
+  font: 9px/1.5 monospace;
+  color: #cadbbd;
+}
+.mission-report {
+  position: absolute;
+  left: 30px;
+  top: 235px;
+  width: 350px;
+  padding: 14px;
+  background: #10201ef2;
+  border-left: 3px solid #ffd18a;
+  pointer-events: auto;
+}
+.mission-report strong {
+  font: bold 15px monospace;
+  color: #ffe0a1;
+}
+.mission-report p {
+  font: 11px/1.6 monospace;
+  margin: 8px 0;
+}
+.mission-report button {
+  padding: 8px 12px;
+  font-size: 11px;
+}
+#motion,
+#retry {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 11px;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (max-height: 780px) {
+  .mission-report {
+    top: 230px;
+    width: 340px;
+    padding: 10px;
+  }
+  .mission-report:not([hidden]) ~ .telemetry {
+    display: none;
+  }
+}
+
+.hud {
+  user-select: none;
+}

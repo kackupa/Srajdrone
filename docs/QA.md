@@ -1,3 +1,27 @@
+# Convoy Intercept QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. npm test: 20 tests passed. npm run build passed; existing bundle-size advisory is ~570kB / 155kB gzip.
+- Mission tests cover warning/arrival timing, three distinct kills, duplicate-hit exclusion, terminal outcomes, scoring, escape/time/recon failure and encounter variations.
+- Effect test creates multiple bursts: the 240-particle cap holds, aim rays ignore cosmetic meshes, and all transient particles are removed after their lifetime.
+- Chromium at 1440×900: actual Space/D/Shift inputs produced ~58m/s, a -0.074-radian bank and ~78.2-degree FOV. Reduced motion settled the bank to zero. Escape froze the mission time during a 0.9-second check.
+- Completed the entire mission twice with real keyboard flights and read-only diagnostic steering; no entity teleporting, health edits or accelerated clocks. The final run stopped all three vehicles in 52.38 simulated seconds using three FPVs, scoring 4,480 points. The first two kills left the mission active; the third completed it.
+- Every successful sortie automatically returned to recon, with no result modal or unexpected pause. Final version pointed recon at the destroyed vehicle. Wrecks, fragments, dust ring, flame and smoke were visible in convoy-success.png. Active effect counts remained bounded (52/68/87 sampled after the three hits).
+- The flight test exposed browser text selection from Ctrl+A during descent/strafe. Movement shortcuts now suppress default document actions and the HUD is nonselectable; the final playthrough had no selection artifacts.
+- N replay opened preset 1 and vehicles entered from the opposite road end. A physical FPV flight near defenders triggered MOVING TO COVER, gunfire and FPV SHOT DOWN, followed by automatic recon return. Subsequent state showed infantry back on patrol. The initial test expected the intercept phase too early: the shootdown happened during the preparation countdown; subsequent observation confirmed the convoy entered normally.
+- Inspected convoy-defenders-720.png at 1280×720: readable reaction/aim label, heart reticle, battery, mission objective and minimap with no overlapping panels.
+
+- In preset 1, a vehicle escaped at 140.27 simulated seconds while the player was flying an FPV. The game returned to recon automatically, displayed failure without a modal, kept the mission clock fixed, and N opened preset 2. Inspected convoy-failed-720.png.
+
+- Actual arrow-key aiming and E marked a pillbox; thermal and 1.3× zoom remained readable. Releasing low manual recon flight let autopilot recover safely; holding manual descent exposed recon to fire, reduced health to zero and set mission failure to Recon UAV lost. Restart restored 100 health, preparation phase and time zero.
+
+- Final focused browser console: zero errors and warnings. Early unfocused automation produced pointer-lock errors; bringing the test page to the foreground resolved those. All subsequent full playthroughs retained pointer lock and automatic return.
+
+## Limitations
+The mission is an initial arcade balance pass. Full human balance and subjective sound levels, alternative browsers, mobile and low-end GPUs remain untested. Infantry reactions use local paths, not general cover navigation. Smoke is cosmetic; vehicles do not avoid wrecks or each other. Preset 0 received complete success playthroughs; preset 1 received escape/reaction playtesting; preset 2 received marking/recon-loss/restart checks. Earlier sections below describe historical builds.
+
+---
+
 # Battery and heart reticle QA — 1 November 2026
 
 ## Verified
