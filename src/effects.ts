@@ -9,7 +9,14 @@ type Particle = {
 };
 export class BattleEffects {
   private particles: Particle[] = [];
-  private wrecks: { p: T.Vector3; age: number; emit: number }[] = [];
+  private wrecks: {
+    p: T.Vector3;
+    age: number;
+    emit: number;
+    fireLife: number;
+    smokeLife: number;
+    cache: boolean;
+  }[] = [];
   private sphere = new T.IcosahedronGeometry(1, 1);
   private chip = new T.BoxGeometry(1, 1, 1);
   private ring = new T.RingGeometry(0.8, 1, 32);
@@ -43,8 +50,10 @@ export class BattleEffects {
     return mesh;
   }
   burst(p: T.Vector3, kind = "drone") {
-    const heavy = kind === "tank" || kind === "truck" || kind === "pillbox";
-    const scale = heavy ? 2 : 0.8;
+    const cache = kind === "cache";
+    const heavy =
+      cache || kind === "tank" || kind === "truck" || kind === "pillbox";
+    const scale = cache ? 3.8 : heavy ? 2 : 0.8;
     for (let i = 0; i < (heavy ? 38 : 16); i++) {
       const v = new T.Vector3(
         (Math.random() - 0.5) * 22,
@@ -88,20 +97,51 @@ export class BattleEffects {
       this.ring,
     );
     if (ring) ring.rotation.x = -Math.PI / 2;
-    if (heavy) this.wrecks.push({ p: p.clone(), age: 0, emit: 0 });
+    if (heavy)
+      this.wrecks.push({
+        p: p.clone(),
+        age: 0,
+        emit: 0,
+        fireLife: cache ? 180 : 14,
+        smokeLife: cache ? 180 : 40,
+        cache,
+      });
+  }
+  get burningCaches() {
+    return this.wrecks.filter((w) => w.cache && w.age < w.fireLife).length;
   }
   update(dt: number) {
+    if (dt <= 0) return;
     for (const w of this.wrecks) {
       w.age += dt;
       w.emit -= dt;
-      if (w.age < 40 && w.emit <= 0) {
+      if (w.age < w.smokeLife && w.emit <= 0) {
         w.emit = 0.3;
         this.add(w.p, new T.Vector3(0.7, 2.4, 0.3), 0x353b38, 1.1, 5, 0.65);
-        if (w.age < 14)
-          this.add(w.p, new T.Vector3(0, 1.8, 0), 0xff8b32, 0.65, 0.6, 1);
+        if (w.age < w.fireLife) {
+          const flame = w.p
+            .clone()
+            .add(
+              new T.Vector3(
+                (Math.random() - 0.5) * 2,
+                0,
+                (Math.random() - 0.5) * 2,
+              ),
+            );
+          this.add(
+            flame,
+            new T.Vector3(0, w.cache ? 3 : 1.8, 0),
+            0xff8b32,
+            w.cache ? 1.2 : 0.65,
+            w.cache ? 1.2 : 0.6,
+            1,
+          );
+          if (w.cache)
+            this.add(flame, new T.Vector3(0, 2, 0), 0xffdb75, 0.5, 0.65, 0.8);
+        }
       }
     }
-    this.wrecks = this.wrecks.filter((w) => w.age < 40);
+    this.wrecks = this.wrecks.filter((w) => w.age < w.smokeLife);
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.age += dt;

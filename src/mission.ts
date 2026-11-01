@@ -6,6 +6,13 @@ export class ConvoyMission {
   phase: MissionPhase = "approach";
   vehicles: VehicleState[] = ["waiting", "waiting", "waiting"];
   reason = "";
+  private caches = new Set<number>();
+  get cachesDestroyed() {
+    return this.caches.size;
+  }
+  destroyCache(id: number) {
+    if (!this.over) this.caches.add(id);
+  }
   constructor(public variant = 0) {}
   get direction() {
     return this.variant % 2 ? -1 : 1;
@@ -60,6 +67,7 @@ export class ConvoyMission {
   score(sorties: number) {
     return (
       this.destroyed * 1000 +
+      this.cachesDestroyed * 750 +
       (this.phase === "success"
         ? Math.ceil(this.remaining) * 10 + Math.max(0, 6 - sorties) * 150
         : 0)

@@ -1,3 +1,22 @@
+# Click targeting, fixed recon and forest caches QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. All 24 tests and the production build passed. Existing bundle-size advisory: ~573kB / 156kB gzip.
+- New tests check exact recon orbit height/radius, once-only cache bonus scoring, persistent cache fire/pause/cleanup, reserved cache sites and foliage sight occlusion separate from solid cover. The tested thicket ray intersects foliage at low height while clearing its solid bank; launch and hideout centres remain outside solid collision boxes.
+- Chromium at 1440×900: held WASD/descent/boost and then climb during recon. Height stayed exactly 155m and position matched the fixed 175m-radius orbit schedule; manual remained false.
+- Aimed at cache 1 with actual camera controls. It was initially absent from the map; E did not mark it, and left-click did. Normal and thermal/zoom views rendered correctly. Inspected cache-spotted-normal.png and cache-spotted-thermal.png.
+- Flew an FPV from the launch clearing into cache 1 using ordinary movement keys. It became persistent rubble, earned exactly 750 bonus points, left the convoy objective unchanged and started a cache fire. Automatic recon return stayed unpaused with no result menu. Inspected cache-burning-recon.png.
+- An additional automated cache-search loop did not acquire the cache from its changing orbit angle; visibility is obstructed by scenery, not guaranteed from every position. Human discovery difficulty remains unmeasured.
+- The visible QA window became actively used during testing; remaining checks moved to a separate headless session. No further commands were sent to the active play session.
+- In the isolated browser, completed all three convoy kills in 53.71 simulated seconds, using three FPVs and scoring 4,470 points. All three impacts returned automatically to recon without a pause or result menu. No health edits, teleporting or clock acceleration were used.
+- At 1280×720, physically flew into a hideout at approximately (-76.6, 2.88, 124.3), then through its foliage and climbed out to 12m. FPV stayed alive at 100 health throughout. Inspected forest-hideout-720.png for low-flight scenery and readable controls.
+- Final isolated browser console: zero errors and warnings. Only the hidden QA session was closed.
+
+## Limits
+Cache 1 received a complete mark/impact/fire playtest; caches 2/3 share the same implementation but were not separately flown into. Persistent fire longevity/cleanup and sight-versus-projectile occlusion have automated checks; the browser cover flight verifies passage rather than a controlled comparison of enemy detection. Bushes use stylized low-poly foliage volumes; no terrain deformation, spreading fire or blast damage to neighbouring targets. Discoverability, audio balance, other browsers and low-end hardware need human playtesting. Earlier recon-override and E-marking QA below is historical and superseded.
+
+---
+
 # Convoy Intercept QA — 1 November 2026
 
 ## Verified

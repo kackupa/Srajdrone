@@ -88,3 +88,13 @@ export function evadeOffset(
   const step = (truck ? 4 : 1.4) * dt;
   return current + Math.max(-step, Math.min(step, desired - current));
 }
+
+// Flight is fixed; player movement keys never alter this orbit.
+export function reconOrbit(time: number): V {
+  const angle = (time * BATTLE.orbitSpeed) / BATTLE.orbitRadius;
+  return {
+    x: Math.sin(angle) * BATTLE.orbitRadius,
+    y: BATTLE.orbitHeight,
+    z: Math.cos(angle) * BATTLE.orbitRadius,
+  };
+}

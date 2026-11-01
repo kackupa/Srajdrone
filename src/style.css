@@ -656,3 +656,12 @@ button:disabled {
 .hud {
   user-select: none;
 }
+
+#cache-progress {
+  margin-top: 5px;
+  font-size: 9px;
+  color: #ddc390;
+}
+.mission-report {
+  top: 260px;
+}
