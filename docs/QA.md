@@ -1,3 +1,15 @@
+# Manual convoy spotting QA — 1 November 2026
+
+- npm install completed with zero reported vulnerabilities; 24 tests and the production build passed. Existing bundle advisory: approximately 593kB / 163kB gzip.
+- Isolated Chromium at 1280×720: waited for all three convoy vehicles to enter. All were active, the marked-target list was empty and the world marker container had zero tags. Inspected convoy-unmarked.png; no vehicle diamonds were on the minimap.
+- Used keyboard camera controls and zoom to acquire the tank. Looking at it alone did not mark it. Left-click then marked only target 2. Captured convoy-manually-marked.png.
+- Toggled thermal twice, launched an FPV, climbed above 6m and switched back to recon. Only target 2 remained tagged; the two transports stayed unmarked.
+- The first automated click missed after the camera moved beyond the target. Its toast correctly requested a visible target. The centred, zoomed repeat passed without changes to gameplay input.
+- The expected route and entry/exit labels remain briefing information; the mission status still reports active vehicles. This update removes automatic position tags, not all mission intelligence.
+- Full destruction/automatic return was tested in the preceding vehicle pass and was not rerun for this small spawn-tag change. New gameplay ideas discussed in chat are proposals, not implemented features.
+
+---
+
 # Recognisable vehicle models QA — 1 November 2026
 
 ## Verified

@@ -29,7 +29,7 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 09</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 10</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">STOP ALL 3 CONVOY VEHICLES</div><div id="mission-clock"></div><div id="convoy-progress"></div><div id="cache-progress" class="small">HIDDEN CACHES · 0 / 3</div></div>
 <div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">NEXT INTERCEPT · N</button></div><div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
@@ -37,7 +37,7 @@ $("app").innerHTML = `
 <div id="battery" class="battery" hidden><div class="battery-heading"><span>FPV BATTERY</span><span id="battery-percent">100%</span></div><strong id="battery-time">01:00</strong><div class="battery-track"><div id="battery-fill"></div></div><div id="battery-status">FLIGHT TIME REMAINING</div><div class="feed-timer">● REC <span id="flight-time">00:00</span></div></div><div id="feed-loss" class="feed-loss" hidden><span>FPV POWER LOST<br>RESTORING RECON FEED</span></div><div class="toast" id="toast"></div><div id="pointer">CLICK THE VIEW TO CAPTURE MOUSE · ESC TO RELEASE / PAUSE</div>
 <div class="bottom"><div><div class="actions"><button id="tag">LEFT CLICK · MARK</button><button id="thermal"><kbd>T</kbd>THERMAL</button><button id="pause">PAUSE</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>SECTOR / BIRCH</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ ENEMY &nbsp; <span style="color:#8ce8ff">⊕ OUR BASE</span></div></div></div></div>
 <div class="flash" id="flash"></div>
-<div class="modal" id="intro"><div class="panel"><div class="eyebrow">SINGLE PLAYER / FOREST OPERATION</div><h1>Convoy inbound.<br>Stop the column.</h1><p>Three convoy vehicles are approaching the forest road. Stop all three before any escapes. You have 12 seconds to prepare and 2:35 to complete the operation. Recon stays in its high orbit: search with the camera, zoom and thermal. Left-click marks enemies; F launches an FPV. Three concealed ammo caches offer 750 bonus points each. Each FPV has 60 seconds of battery. Boosting uses it faster.</p><div class="steps"><div><b>01 / OBSERVE</b>Zoom + thermal</div><div><b>02 / MARK</b>Left-click a target</div><div><b>03 / LAUNCH</b>Press F, then fly</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>KEYBOARD + MOUSE · ARCADE FLIGHT · ORIGINAL FICTIONAL MAP</footer></div></div>
+<div class="modal" id="intro"><div class="panel"><div class="eyebrow">SINGLE PLAYER / FOREST OPERATION</div><h1>Convoy inbound.<br>Stop the column.</h1><p>Three convoy vehicles are approaching the forest road. Stop all three before any escapes. You have 12 seconds to prepare and 2:35 to complete the operation. Recon stays in its high orbit: search with the camera, zoom and thermal. Convoy vehicles stay unmarked until you spot and left-click them. F launches an FPV. Three concealed ammo caches offer 750 bonus points each. Each FPV has 60 seconds of battery. Boosting uses it faster.</p><div class="steps"><div><b>01 / OBSERVE</b>Zoom + thermal</div><div><b>02 / MARK</b>Left-click a target</div><div><b>03 / LAUNCH</b>Press F, then fly</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>KEYBOARD + MOUSE · ARCADE FLIGHT · ORIGINAL FICTIONAL MAP</footer></div></div>
 <div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>Recon flight is locked to its high orbit. Mouse or arrows aim the camera; scroll zooms and T toggles thermal. Left-click marks the target under the heart. WASD flies the FPV; Space climbs and C/Ctrl descends. Shift boosts and drains battery faster. Each FPV starts with 60 seconds; pause stops the countdown. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button><button id="motion">FLIGHT MOTION: ON · V</button><button id="retry">RESTART INTERCEPT</button></div></div>
 <div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">OPERATION LOST</div><h1 id="resultTitle">Recon UAV lost.</h1><p id="resultText"></p><button class="primary" id="continue">RESTART OPERATION →</button></div></div>`;
 const canvas = $("view") as HTMLCanvasElement;
@@ -1022,11 +1022,12 @@ function battleStep(dt: number) {
         t.group.traverse((o) => {
           if (o instanceof T.Mesh) o.material = o.userData.originalMaterial;
         });
-        t.marked = t.id <= CONVOY.count;
+        // Arrival is mission bookkeeping, not a player sighting.
+        t.marked = false;
         t.serial++;
         if (t.id <= CONVOY.count) {
           mission.enter(t.id - 1);
-          toast(t.name + " ENTERING · ROUTE ON MAP");
+          toast("CONVOY REPORTED · SEARCH THE ROAD · LEFT CLICK TO MARK");
         }
         t.p[t.axis] = -t.direction * 248;
         t.previous.copy(t.p);

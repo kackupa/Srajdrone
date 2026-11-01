@@ -13,7 +13,7 @@ npm run build
 Open http://127.0.0.1:5178 and click Begin operation.
 
 ## Convoy Intercept
-Stop all three convoy vehicles before any escapes the forest road. A 12-second preparation countdown precedes staggered arrivals. The operation lasts at most 2:35, including preparation. The convoy route, entry/exit and incoming vehicle markers appear on the map. Left-click marks the visible target under the heart reticle. Concealed caches stay off the map until marked.
+Stop all three convoy vehicles before any escapes the forest road. A 12-second preparation countdown precedes staggered arrivals. The operation lasts at most 2:35, including preparation. The expected convoy route and entry/exit appear on the map as briefing information. Vehicles arrive unmarked: their positions and world tags stay hidden until you aim at a visible target and left-click. Arrival reports do not tag vehicles, and simply looking at a vehicle does not tag it. Concealed caches also stay off the map until marked.
 
 Each convoy vehicle destroyed earns 1,000 points. Completing the mission adds 10 points per remaining second (rounded up) and 150 for each drone below six used. A vehicle escaping or time expiring fails the operation. FPV loss alone does not.
 
