@@ -1,8 +1,9 @@
 # Srajdrone
 
-Standalone desktop browser FPV combat game prototype. Original fictional forest map and procedural artwork; no imported Google imagery, real geography, or real military assets.
+Standalone desktop browser FPV combat game prototype. Original fictional forest map and procedural artwork.
 
 ## Run
+
 Node.js 22+:
 ```
 npm install
@@ -10,28 +11,36 @@ npm run dev -- --port 5178
 npm test
 npm run build
 ```
-Open http://127.0.0.1:5178. Click Begin operation, then use the keyboard and mouse.
+Open http://127.0.0.1:5178. Click Begin operation.
 
-## Play
-Start in a high recon UAV. Aim at a visible vehicle or patrol and press E to mark it on the map. F launches a fresh FPV drone beside a friendly squad. Fly into an enemy target to destroy it. A hit consumes the drone; return to recon and launch again. Clear all nine targets to finish. F can also abandon a sortie and return to recon.
+## The hunt
 
-- WASD: forward/backward and strafe. FPV forward follows the view.
-- Mouse: aim. Click the view to capture the mouse.
+The recon UAV circles continuously at high altitude. Mouse aiming is independent of flight and its view stabilizes on the ground during the automatic orbit. WASD and Space/Ctrl temporarily override the aircraft; releasing movement resumes its high loop. The recon keeps orbiting while you fly an FPV.
+
+Aim at a visible vehicle or patrol and press E to mark it. Press F to launch a fresh FPV beside the friendly squad, or press Escape and click Launch FPV drone. Fly into a target to destroy it. Vehicle traffic enters and leaves along both roads; destroyed/exited vehicles are replaced after a delay. Patrols walk the shoulders. This is an ongoing hunt scored by targets destroyed, rather than a finite nine-target mission.
+
+Rifle patrols and tank machine guns spot low, exposed drones before firing visible projectiles. Tanks stop to engage. Trees block both sight and projectiles; breaking sight drains enemy tracking. High altitude keeps you outside the deliberately limited arcade defense envelope. Incoming hits show a red flash and reduce health. FPV losses are recoverable; recon health persists and its destruction ends the operation. Restart resets the entire operation.
+
+## Controls
+
+- WASD: recon manual override / FPV forward, backward and strafe. FPV forward follows the view.
+- Mouse: aim; click the view to capture the mouse.
 - Space: climb. Ctrl or C: descend.
-- Shift: boost. Release movement to brake quickly.
+- Shift: FPV boost. Release FPV movement to brake and hover.
 - Arrow keys: alternative aiming.
-- E: mark the target directly under the reticle.
+- E: mark the target under the reticle.
+- F: launch FPV / return to recon.
 - T: normal / simulated thermal vision.
-- Mouse wheel: zoom (recon up to 8×, FPV up to 3×).
-- Escape: release mouse and pause. M: mute synthesized audio.
+- Wheel: zoom (recon up to 8×, FPV up to 3×).
+- Escape: pause and clickable launch menu. M: mute.
 
-Thermal rendering highlights enemies but uses normal depth occlusion. Previously marked positions remain visible as game HUD markers. All enemies are stationary in this first prototype. Targets use generous spherical game hitboxes, with one-hit destruction. Trees use simplified collision volumes. This is arcade movement with automatic hover, not an aircraft simulator.
+## Prototype boundaries
 
-## Implementation
-TypeScript + Three.js + Vite. A single original 500m playable forest sector with two intersecting roads; no backend, accounts, external map service, or persistent save. Instanced trees, simple vehicle/soldier shapes, synthesized rotor/impact audio and original debris effects.
+TypeScript + Three.js + Vite, one original forest sector, no backend or saves. Original simple rifle and turret shapes, synthesized rotor/impact/gunfire audio, instanced trees and debris effects. No Google Maps or real military assets.
+
+Movement, weapon behavior and hitboxes are fictional arcade abstractions. Trees use simplified drone collision volumes, while visibility/projectile checks use their rendered geometry. Targets have generous one-hit collision spheres. Marks track surviving enemies until they leave the map. Transports do not shoot; patrols do not respawn. Traffic uses fixed road lanes without vehicle-to-vehicle avoidance. Infantry routes and combat behavior are intentionally simple.
 
 ## Validation
-See [docs/QA.md](docs/QA.md) for actual test results and limitations. Temporary browser artifacts live under ignored output/playwright/.
 
-## Launch clarity update
-A prominent recon card now says Press F to launch, with a readable F key badge. Marking a target changes the card to an explicit launch prompt. Escape opens a menu with a clickable Launch FPV drone action; it resumes and switches to FPV in one click. The FPV card explains Space to take off and W to fly.
+See [docs/QA.md](docs/QA.md) for actual test results and remaining limitations. Temporary browser captures are ignored under output/playwright/.
+
