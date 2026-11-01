@@ -21,3 +21,9 @@
 
 Temporary screenshots and tool logs are ignored under output/playwright/. Early CLI metadata also exists in ignored .playwright-cli/.
 
+
+## Launch clarity follow-up
+- npm install, npm test (4 passed), and npm run build passed after the UI change.
+- Chromium at 1280×720: marked the initial target, verified the persistent Press F now prompt, pressed F, verified FPV mode, and climbed above 5m with Space.
+- Returned to recon, opened Escape menu, clicked Launch FPV drone, verified unpaused FPV mode and sortie increment, then accelerated above 25m/s using W.
+- Inspected recon and pause-menu screenshots; launch text and the F key are legible and unobstructed. Captures: output/playwright/launch-recon.png and launch-pause-menu.png.

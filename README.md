@@ -32,3 +32,6 @@ TypeScript + Three.js + Vite. A single original 500m playable forest sector with
 
 ## Validation
 See [docs/QA.md](docs/QA.md) for actual test results and limitations. Temporary browser artifacts live under ignored output/playwright/.
+
+## Launch clarity update
+A prominent recon card now says Press F to launch, with a readable F key badge. Marking a target changes the card to an explicit launch prompt. Escape opens a menu with a clickable Launch FPV drone action; it resumes and switches to FPV in one click. The FPV card explains Space to take off and W to fly.
