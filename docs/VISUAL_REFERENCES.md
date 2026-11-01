@@ -21,3 +21,11 @@ The 60-second battery, 1.8× boost drain, warning thresholds and sound cues are 
 - Stronger visual distinction between the stable recon feed and the FPV feed.
 
 These are presentation proposals, not verified features of the inaccessible X videos. Existing responsive arcade controls stay central.
+
+## Vehicle appearance references — Prototype 09
+- [The Tank Museum, T-72](https://tankmuseum.org/tank-nuts/tank-collection/t-72/?tpage=1): T-72 family silhouette reference.
+- [Wikimedia Commons, T-72B](https://commons.wikimedia.org/wiki/Category:T-72B): visual reference collection for the rounded turret, exterior armour tiles and running gear.
+- [Wikimedia Commons, Ural-4320](https://commons.wikimedia.org/wiki/Category:Ural-4320): visual reference collection for the long bonnet, six-wheel layout, grille, lights and cargo canopy.
+- Photo search also supplied front/three-quarter images of the [T-72B](https://themilitarydatabase.com/equipment/99) and [Ural-4320](https://truck-auto.info/ural/208-4320.html).
+
+These are appearance references only. All mesh geometry and camouflage/fabric/wear textures are authored in code in this repository; none of the photographs were downloaded or included as assets. Models are recognizable interpretations, not exact replicas or technical simulations. Armour tiles, exterior cylinders and other details are cosmetic; no new real-world performance or vulnerability model was added. Faction names remain fictional.

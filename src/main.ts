@@ -29,7 +29,7 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 08</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 09</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">STOP ALL 3 CONVOY VEHICLES</div><div id="mission-clock"></div><div id="convoy-progress"></div><div id="cache-progress" class="small">HIDDEN CACHES · 0 / 3</div></div>
 <div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">NEXT INTERCEPT · N</button></div><div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
@@ -294,24 +294,9 @@ function target(
     models.soldier(g);
   }
 
-  if (kind === "tank" || kind === "truck") {
-    for (let i = 0; i < 4; i++) {
-      const side = i % 2 ? 1 : -1;
-      box(
-        0.04,
-        0.4,
-        1.1,
-        dark,
-        side * (kind === "tank" ? 2.08 : 1.52),
-        kind === "tank" ? 1.3 : 2,
-        -1.5 + Math.floor(i / 2) * 2.2,
-        g,
-      );
-    }
-  }
   const gun = new T.Group();
   g.add(gun);
-  gun.position.y = kind === "pillbox" ? 3.5 : kind === "tank" ? 3.15 : 1.4;
+  gun.position.y = kind === "pillbox" ? 3.5 : kind === "tank" ? 2.78 : 1.4;
   if (kind !== "truck" && kind !== "cache") {
     box(
       kind === "tank" ? 0.3 : 0.16,
@@ -565,6 +550,10 @@ function sensor() {
     m.color.copy(thermal ? new T.Color(hot ? 0xffe5ac : 0x252c31) : color);
     m.emissive.setHex(thermal && hot ? 0xffb95c : 0);
     m.emissiveIntensity = thermal && hot ? 0.8 : 0;
+    if (m.userData.sensorMap) {
+      m.map = thermal ? null : m.userData.sensorMap;
+      m.needsUpdate = true;
+    }
   });
   scene.background = new T.Color(thermal ? "#151d24" : "#a5b7b1");
   scene.fog = new T.FogExp2(
@@ -1136,6 +1125,7 @@ function battleStep(dt: number) {
       const dx = t.p.x - t.previous.x,
         dz = t.p.z - t.previous.z;
       if (Math.hypot(dx, dz) > 0.001) t.group.rotation.y = Math.atan2(-dx, -dz);
+      models.roll(t.group, Math.hypot(dx, dz));
       if (moved.exited) {
         t.alive = false;
         t.group.visible = false;

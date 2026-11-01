@@ -1,3 +1,19 @@
+# Recognisable vehicle models QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. All 24 existing flight, collision, battle, mission and effects tests passed. Final production build passed; bundle advisory is approximately 593kB / 163kB gzip.
+- Chromium at 1280×720: used actual arrow camera controls and wheel zoom to inspect the convoy at 8×. Left-click marked the tank, T enabled a clear warm thermal silhouette, and a second T restored the painted vehicle appearance. Captures: visual-tank-normal.png, visual-tank-thermal.png, visual-truck-normal.png.
+- Completed the full convoy mission with ordinary keyboard FPV flight and read-only diagnostic steering: three sorties, 53.37 simulated seconds, 4,470 points. All three vehicles stayed destroyed and every impact automatically returned to unpaused recon without a sortie modal. No teleporting, health editing or clock acceleration.
+- Inspected both original meshes in a temporary close-up review scene using the actual model factory. Captures realistic-tank-review.png and realistic-truck-review.png show the lower rounded turret, armour tiles, tracks, bonnet, grille, round lamps, tyres and painted surfaces. This fixture is a model inspection, separate from the gameplay tests above.
+- Close-up review exposed canopy seams intersecting the fabric surface. Adjusted the seam curve and rear flap, rebuilt and inspected the final truck capture. Those final edits affect cosmetic geometry only.
+- The temporary review page initially imported a second Three.js instance and requested an absent favicon; both fixture issues were corrected. They were not game runtime faults.
+- Wheel groups roll from vehicle travel, static detail meshes are merged by material, and the existing material registration handles thermal switching and wreck recolouring.
+
+## Limits
+Vehicle shapes are original interpretations inspired by the T-72 family and Ural-4320, not exact replicas. Textures are procedural camouflage, wear and fabric. The forest and infantry retain the previous stylized assets; the overall game is not photorealistic. Arcade collision spheres, health, detection and mission balance are unchanged. Low-end hardware, extended human play, other browsers, controlled thermal concealment and cache interception were not rechecked in this vehicle-focused pass.
+
+---
+
 # Models and scenery QA — 1 November 2026
 
 ## Verified
