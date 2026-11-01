@@ -27,13 +27,13 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 06</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 07</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">STOP ALL 3 CONVOY VEHICLES</div><div id="mission-clock"></div><div id="convoy-progress"></div><div id="cache-progress" class="small">HIDDEN CACHES · 0 / 3</div></div>
 <div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">NEXT INTERCEPT · N</button></div><div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
-<div class="battle-status"><div id="autopilot">RECON AUTOPILOT · HIGH ORBIT</div><div id="health">RECON 100% · FPV READY</div><div id="threat">HIGH ORBIT · SCANNING</div></div><div class="damage-vignette" id="damage"></div><div id="cross" class="cross" aria-label="Heart aiming reticle"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 33 C16 29 4 21 4 13 C4 4 15 3 20 11 C25 3 36 4 36 13 C36 21 24 29 20 33 Z"/><circle cx="20" cy="20" r="1.3"/></svg></div><div id="aim" class="aim-label"></div><div id="markers"></div>
+<div class="battle-status"><div id="autopilot">RECON AUTOPILOT · HIGH ORBIT</div><div id="health">RECON 100% · FPV READY</div><div id="threat">HIGH ORBIT · SCANNING</div></div><div class="damage-vignette" id="damage"></div><div id="cross" class="cross" aria-label="Heart aiming reticle"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 33 C16 29 4 21 4 13 C4 4 15 3 20 11 C25 3 36 4 36 13 C36 21 24 29 20 33 Z"/><circle cx="20" cy="20" r="1.3"/></svg></div><div id="aim" class="aim-label"></div><div id="markers"></div><div id="friendly-markers"></div><div class="home-reference" id="home-reference"><span id="home-arrow" aria-hidden="true">↑</span><div><strong>OUR TEAM / BASE</strong><div id="home-distance">FRIENDLY POSITION</div></div></div>
 <div id="battery" class="battery" hidden><div class="battery-heading"><span>FPV BATTERY</span><span id="battery-percent">100%</span></div><strong id="battery-time">01:00</strong><div class="battery-track"><div id="battery-fill"></div></div><div id="battery-status">FLIGHT TIME REMAINING</div><div class="feed-timer">● REC <span id="flight-time">00:00</span></div></div><div id="feed-loss" class="feed-loss" hidden><span>FPV POWER LOST<br>RESTORING RECON FEED</span></div><div class="toast" id="toast"></div><div id="pointer">CLICK THE VIEW TO CAPTURE MOUSE · ESC TO RELEASE / PAUSE</div>
-<div class="bottom"><div><div class="actions"><button id="tag">LEFT CLICK · MARK</button><button id="thermal"><kbd>T</kbd>THERMAL</button><button id="pause">PAUSE</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>SECTOR / BIRCH</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ MARKED &nbsp; + LAUNCH</div></div></div></div>
+<div class="bottom"><div><div class="actions"><button id="tag">LEFT CLICK · MARK</button><button id="thermal"><kbd>T</kbd>THERMAL</button><button id="pause">PAUSE</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>SECTOR / BIRCH</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ ENEMY &nbsp; <span style="color:#8ce8ff">⊕ OUR BASE</span></div></div></div></div>
 <div class="flash" id="flash"></div>
 <div class="modal" id="intro"><div class="panel"><div class="eyebrow">SINGLE PLAYER / FOREST OPERATION</div><h1>Convoy inbound.<br>Stop the column.</h1><p>Three convoy vehicles are approaching the forest road. Stop all three before any escapes. You have 12 seconds to prepare and 2:35 to complete the operation. Recon stays in its high orbit: search with the camera, zoom and thermal. Left-click marks enemies; F launches an FPV. Three concealed ammo caches offer 750 bonus points each. Each FPV has 60 seconds of battery. Boosting uses it faster.</p><div class="steps"><div><b>01 / OBSERVE</b>Zoom + thermal</div><div><b>02 / MARK</b>Left-click a target</div><div><b>03 / LAUNCH</b>Press F, then fly</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>KEYBOARD + MOUSE · ARCADE FLIGHT · ORIGINAL FICTIONAL MAP</footer></div></div>
 <div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>Recon flight is locked to its high orbit. Mouse or arrows aim the camera; scroll zooms and T toggles thermal. Left-click marks the target under the heart. WASD flies the FPV; Space climbs and C/Ctrl descends. Shift boosts and drains battery faster. Each FPV starts with 60 seconds; pause stops the countdown. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button><button id="motion">FLIGHT MOTION: ON · V</button><button id="retry">RESTART INTERCEPT</button></div></div>
@@ -535,6 +535,7 @@ const velocity = new T.Vector3(),
   keys = new Set<string>(),
   ray = new T.Raycaster();
 let aimed: Target | undefined;
+let aimedFriendly = "";
 let toastUntil = 0;
 function toast(s: string) {
   $("toast").textContent = s;
@@ -627,7 +628,12 @@ function mark() {
     if (mode === "recon")
       $("launch-copy").textContent =
         aimed.name + " marked. Press F now to launch your FPV drone.";
-  } else toast("Aim directly at a visible target to mark");
+  } else
+    toast(
+      aimedFriendly
+        ? "FRIENDLY TEAM · THIS IS OUR POSITION"
+        : "Aim directly at a visible target to mark",
+    );
 }
 function pause(value: boolean) {
   if (!started || ended) return;
@@ -878,9 +884,17 @@ function mapDraw() {
   map.stroke();
   map.fillStyle = "#a5deff";
   map.fillRect(to(recon.x) - 3, to(recon.z) - 3, 6, 6);
-  map.fillStyle = "#cfff95";
+  map.strokeStyle = "#78dfff";
+  map.lineWidth = 2;
+  map.beginPath();
+  map.arc(to(spawn.x), to(spawn.z), 11, 0, Math.PI * 2);
+  map.stroke();
+  map.fillStyle = "#78dfff";
+  map.font = "bold 13px monospace";
+  map.fillText("BASE", to(spawn.x) + 14, to(spawn.z) + 5);
+  for (const f of battlefield.friendlies)
+    map.fillRect(to(f.position.x) - 2, to(f.position.z) - 2, 4, 4);
   map.font = "18px monospace";
-  map.fillText("+", to(spawn.x) - 5, to(spawn.z) + 5);
   for (const t of targets)
     if (t.marked && t.group.visible) {
       map.fillStyle = t.alive ? "#ffb57e" : "#65746c";
@@ -1382,6 +1396,7 @@ function frame(dt: number) {
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   aimed = undefined;
+  aimedFriendly = "";
   ray.setFromCamera(new T.Vector2(0, 0), camera);
   const hits = ray.intersectObjects(scene.children, true).filter((hit) => {
     let object: T.Object3D | null = hit.object;
@@ -1393,13 +1408,18 @@ function frame(dt: number) {
   });
   if (hits.length) {
     let o: T.Object3D | null = hits[0].object;
-    while (o && !o.userData.target) o = o.parent;
-    if (o) aimed = targets.find((t) => t.id === o!.userData.target && t.alive);
+    while (o && !o.userData.target && !o.userData.friendly) o = o.parent;
+    if (o?.userData.friendly) aimedFriendly = String(o.userData.friendly);
+    else if (o)
+      aimed = targets.find((t) => t.id === o!.userData.target && t.alive);
   }
   $("cross").classList.toggle("ready", !!aimed);
+  $("cross").classList.toggle("friendly", !!aimedFriendly);
   $("aim").textContent = aimed
     ? aimed.name + " · " + aimed.reaction + " · LEFT CLICK TO MARK"
-    : "";
+    : aimedFriendly
+      ? "OUR TEAM · FRIENDLY"
+      : "";
   $("alt").textContent = Math.round(
     position.y - groundHeight(position.x, position.z),
   ).toString();
@@ -1503,6 +1523,56 @@ function frame(dt: number) {
           "m</div>";
     }
   $("markers").innerHTML = html;
+  const basePoint = spawn.clone().setY(3),
+    baseScreen = basePoint.clone().project(camera);
+  const homeDelta = spawn.clone().sub(position);
+  const right = homeDelta.x * Math.cos(yaw) - homeDelta.z * Math.sin(yaw);
+  const ahead = -homeDelta.x * Math.sin(yaw) - homeDelta.z * Math.cos(yaw);
+  const atBase = Math.hypot(homeDelta.x, homeDelta.z) < 15 && position.y < 15;
+  $("home-arrow").textContent = atBase ? "⊕" : "↑";
+  $("home-arrow").style.transform =
+    "rotate(" +
+    ((atBase ? 0 : Math.atan2(right, ahead)) * 180) / Math.PI +
+    "deg)";
+  $("home-distance").textContent =
+    Math.hypot(homeDelta.x, homeDelta.z) < 15 && position.y < 15
+      ? "AT FRIENDLY LAUNCH SITE"
+      : Math.round(homeDelta.length()) + "m · DIRECTION TO HOME";
+  let friendlyHtml = "";
+  const inView = (p: T.Vector3) => {
+    const x = ((p.x + 1) * innerWidth) / 2,
+      y = ((-p.y + 1) * innerHeight) / 2;
+    return (
+      p.z > -1 &&
+      p.z < 1 &&
+      Math.abs(p.x) < 0.9 &&
+      Math.abs(p.y) < 0.78 &&
+      !(x < 400 && y < 260) &&
+      !(x > innerWidth - 330) &&
+      !(x < 780 && y > innerHeight - 220) &&
+      !(Math.abs(x - innerWidth / 2) < 170 && y < 190)
+    );
+  };
+  if (inView(baseScreen))
+    friendlyHtml +=
+      '<div class="friendly-base" style="left:' +
+      (baseScreen.x + 1) * 50 +
+      "%;top:" +
+      (-baseScreen.y + 1) * 50 +
+      '%"><b>⊕</b> OUR TEAM / BASE</div>';
+  for (const f of battlefield.friendlies) {
+    const p = f.position.clone().project(camera);
+    if (inView(p))
+      friendlyHtml +=
+        '<div class="friendly-unit" title="' +
+        f.name +
+        '" style="left:' +
+        (p.x + 1) * 50 +
+        "%;top:" +
+        (-p.y + 1) * 50 +
+        '%">⌄</div>';
+  }
+  $("friendly-markers").innerHTML = friendlyHtml;
   mapDraw();
   renderer.render(scene, camera);
 }
@@ -1552,6 +1622,13 @@ Object.defineProperty(window, "gameState", {
     boosting,
     manual: false,
     burningCaches: effects.burningCaches,
+    aimedFriendly,
+    friendlies: battlefield.friendlies.map((f) => ({
+      name: f.name,
+      x: f.position.x,
+      y: f.position.y,
+      z: f.position.z,
+    })),
     threatCount,
     shotsFired,
     shotsBlocked,

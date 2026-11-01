@@ -12,6 +12,9 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     metal = mat(0x3f4e49),
     black = mat(0x242b29),
     pale = mat(0xb4b9a2);
+  const friendlyBody = mat(0x607750, true);
+  const friendlyId = new T.MeshBasicMaterial({ color: 0x78dfff });
+  const friendlies: { name: string; position: T.Vector3 }[] = [];
   function box(
     w: number,
     h: number,
@@ -133,18 +136,55 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
       rotor.position.set(-110 + a, 1.28, 163 + b);
       scene.add(rotor);
     }
+  // Cyan identification paint is an arcade friendly aid in both sensor modes.
+  for (const side of [-1, 1]) {
+    box(
+      0.16,
+      0.03,
+      3.6,
+      friendlyId,
+      LAUNCH.x + side * 2.1,
+      0.21,
+      LAUNCH.z,
+      false,
+    ).userData.friendly = "OUR BASE";
+    box(
+      4.2,
+      0.03,
+      0.16,
+      friendlyId,
+      LAUNCH.x,
+      0.21,
+      LAUNCH.z + side * 1.8,
+      false,
+    ).userData.friendly = "OUR BASE";
+  }
   // Allied operators and a supply van, away from the playable takeoff opening.
   for (const [x, z] of [
     [-97, 158],
     [-108, 172],
     [-119, 159],
   ]) {
-    box(0.7, 1, 0.5, camo, x, 0.95, z, false);
-    const head = new T.Mesh(new T.SphereGeometry(0.3, 8, 6), camo);
+    const name = "FRIENDLY " + (friendlies.length + 1);
+    friendlies.push({ name, position: new T.Vector3(x, 2.4, z) });
+    box(0.7, 1, 0.5, friendlyBody, x, 0.95, z, false).userData.friendly = name;
+    box(0.79, 0.16, 0.56, friendlyId, x, 1.25, z, false).userData.friendly =
+      name;
+    const head = new T.Mesh(new T.SphereGeometry(0.3, 8, 6), friendlyBody);
+    head.userData.friendly = name;
     head.position.set(x, 1.8, z);
     scene.add(head);
     for (const a of [-0.23, 0.23])
-      box(0.23, 0.65, 0.3, black, x + a, 0.32, z, false);
+      box(
+        0.23,
+        0.65,
+        0.3,
+        friendlyBody,
+        x + a,
+        0.32,
+        z,
+        false,
+      ).userData.friendly = name;
     box(0.5, 0.07, 0.08, pale, x, 1.3, z - 0.28, false);
   }
   box(3.6, 2.3, 6.5, metal, -123, 1.7, 180);
@@ -152,6 +192,16 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
   for (const a of [-1.8, 1.8])
     for (const b of [-2.1, 2.1])
       box(0.4, 1, 1.1, black, -123 + a, 0.55, 180 + b);
+  box(
+    2.5,
+    0.15,
+    1.4,
+    mat(0x536049, true),
+    -123,
+    2.9,
+    177.7,
+    false,
+  ).userData.friendly = "FRIENDLY SUPPORT";
   canopy(-123, 180, 5, 8);
   // Crater scars and shattered trees give the center a battle-worn silhouette.
   for (let i = 0; i < 24; i++) {
@@ -172,5 +222,5 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     const log = box(0.6, 0.6, 5, wood, x + 3, 0.35, z - 3);
     log.rotation.y = rand() * Math.PI;
   }
-  return { solids, blockers, soil, mud, wood, sand, camo };
+  return { solids, blockers, soil, mud, wood, sand, camo, friendlies };
 }

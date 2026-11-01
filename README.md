@@ -34,6 +34,8 @@ The heart reticle's centre dot is the exact aim point. Normal and simulated ther
 
 Hits produce target-dependent bursts with fire, fragments, a dust ring and smoke. Vehicle/fortification wrecks emit smoke for 40 seconds and flames briefly. Ammo caches have larger bursts and leave flames and smoke burning for three minutes of active time, including the recon review after the mission. Pausing freezes the fire. Cosmetic effects never block aiming or collision rays and have a 240-particle cap. Original synthesized explosions include a low-frequency impact.
 
+Our own team is identified in cyan in both sensors: squad chevrons, launch-pad paint and a labelled BASE ring on the minimap. Friendly soldiers show warm bodies in thermal. A permanent OUR TEAM / BASE card gives distance and camera-relative direction even when the camp is off-screen. Friendly world labels avoid HUD panels. Aiming at a friendly turns the heart cyan; clicking identifies the friendly instead of adding an enemy mark. These known-location markers are game aids and can show through cover.
+
 ## Controls
 - WASD: FPV forward, backward and strafe only. Recon flight cannot be overridden.
 - Mouse or arrow keys: look/aim. Left-click: mark the visible target under the heart; also captures the mouse when needed.

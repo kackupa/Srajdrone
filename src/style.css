@@ -665,3 +665,63 @@ button:disabled {
 .mission-report {
   top: 260px;
 }
+
+.cross.friendly {
+  color: #8ce8ff;
+}
+.friendly-base {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: 5px 8px;
+  color: #a6edff;
+  background: #08262bd9;
+  border: 1px solid #78dfff88;
+  font: bold 10px/1.5 monospace;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px #000;
+}
+.friendly-base b {
+  font-size: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+.friendly-unit {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  color: #8ce8ff;
+  font: bold 28px/1 monospace;
+  text-shadow:
+    0 1px 3px #00151e,
+    0 0 3px #00151e;
+}
+.home-reference {
+  position: absolute;
+  left: 30px;
+  bottom: 133px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 13px;
+  color: #a6edff;
+  background: #08262be6;
+  border-left: 3px solid #78dfff;
+  font: 10px/1.7 monospace;
+  letter-spacing: 0.04em;
+}
+#home-arrow {
+  display: block;
+  font: bold 27px/1 monospace;
+}
+.home-reference strong {
+  font-size: 11px;
+}
+#home-distance {
+  color: #c5e4e9;
+}
+@media (max-width: 850px) {
+  .home-reference {
+    left: 16px;
+    bottom: 130px;
+  }
+}

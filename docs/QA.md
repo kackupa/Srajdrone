@@ -1,3 +1,20 @@
+# Friendly-team visibility QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities; all 24 tests and the production build passed. Existing bundle advisory: ~576kB / 157kB gzip.
+- In an isolated Chromium browser at 1280×720, launched an FPV, aimed at a friendly operator and left-clicked. The aim label identified OUR TEAM · FRIENDLY, the reticle turned cyan and no hostile mark was added.
+- Inspected friendly-team-normal-720.png and friendly-team-thermal-720.png: normal green uniform with cyan identification, warm body/head/legs in thermal, persistent cyan squad chevron and visible launch-pad paint.
+- Climbed above 20m without the new camp decoration obstructing takeoff, then returned to recon.
+- Verified the base marker in recon normal and thermal at approximately 2.4× zoom. Inspected friendly-base-recon-thermal-final.png; warm operators and the friendly support vehicle heat patch were visible among the camp structures.
+- Turned away until the projected base marker left the view. The home reference stayed visible with a 207m distance and a direction arrow. Minimap showed the cyan BASE ring and friendly squad points.
+- Adjusted world-marker visibility to keep labels out of HUD areas after an initial screenshot showed overlap near the bottom controls. Final atomic bounds check placed the projected base label in the centre of the view, separate from the lower-left home card.
+- Final browser console: zero errors/warnings. The hidden QA browser was closed; the active player session was not controlled.
+
+## Limits
+Cyan paint/markers are fictional identification aids, not a physical thermal model. The known friendly-location overlay can remain visible through scenery; the rendered soldiers and their heat still obey scene occlusion. No friendly combat or damage system was added. Other resolutions/browsers were not rechecked this update.
+
+---
+
 # Click targeting, fixed recon and forest caches QA — 1 November 2026
 
 ## Verified
