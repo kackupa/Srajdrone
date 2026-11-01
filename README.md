@@ -36,6 +36,11 @@ Hits produce target-dependent bursts with fire, fragments, a dust ring and smoke
 
 Our own team is identified in cyan in both sensors: squad chevrons, launch-pad paint and a labelled BASE ring on the minimap. Friendly soldiers show warm bodies in thermal. A permanent OUR TEAM / BASE card gives distance and camera-relative direction even when the camp is off-screen. Friendly world labels avoid HUD panels. Aiming at a friendly turns the heart cyan; clicking identifies the friendly instead of adding an enemy mark. These known-location markers are game aids and can show through cover.
 
+## Models and scenery
+Original procedural models now give tanks layered hulls, tracks, road wheels, turret hatches and stowage; transports have six wheels, glazed cabs, lights, mirrors and ribbed canvas beds. Infantry and friendly operators have helmets, vests, pouches, packs and boots. Friendly cyan armbands and thermal identification remain.
+
+The forest mixes tiered conifers and pale-trunk broadleaf trees, with procedural ground/road textures, dirt shoulders and soft directional shadows. Tree placement, target collision radii, flight tuning and mission rules remain unchanged; the new crown geometry changes the exact rendered sightlines. Assets remain stylized, original and generated locally; no external model or texture downloads are required.
+
 ## Controls
 - WASD: FPV forward, backward and strafe only. Recon flight cannot be overridden.
 - Mouse or arrow keys: look/aim. Left-click: mark the visible target under the heart; also captures the mouse when needed.

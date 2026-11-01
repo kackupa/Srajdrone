@@ -1,4 +1,6 @@
 import * as T from "three";
+import { createModels } from "./models";
+import { surfaceTexture } from "./surfaces";
 import { LAUNCH, TRENCHES, reserved } from "./layout";
 type MaterialFactory = (color: number, hot?: boolean) => T.MeshStandardMaterial;
 export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
@@ -12,7 +14,7 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     metal = mat(0x3f4e49),
     black = mat(0x242b29),
     pale = mat(0xb4b9a2);
-  const friendlyBody = mat(0x607750, true);
+  const models = createModels(mat);
   const friendlyId = new T.MeshBasicMaterial({ color: 0x78dfff });
   const friendlies: { name: string; position: T.Vector3 }[] = [];
   function box(
@@ -27,6 +29,8 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
   ) {
     const mesh = new T.Mesh(new T.BoxGeometry(w, h, d), m);
     mesh.position.set(x, y, z);
+    mesh.castShadow = h > 0.3;
+    mesh.receiveShadow = true;
     scene.add(mesh);
     if (solid) {
       solids.push(mesh);
@@ -51,7 +55,10 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     hole.closePath();
     shape.holes.push(hole);
   }
-  const ground = new T.Mesh(new T.ShapeGeometry(shape), mat(0x626c4d));
+  const groundMaterial = mat(0xffffff);
+  groundMaterial.map = surfaceTexture("ground");
+  const ground = new T.Mesh(new T.ShapeGeometry(shape), groundMaterial);
+  ground.receiveShadow = true;
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
   blockers.push(ground);
@@ -167,25 +174,13 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
   ]) {
     const name = "FRIENDLY " + (friendlies.length + 1);
     friendlies.push({ name, position: new T.Vector3(x, 2.4, z) });
-    box(0.7, 1, 0.5, friendlyBody, x, 0.95, z, false).userData.friendly = name;
-    box(0.79, 0.16, 0.56, friendlyId, x, 1.25, z, false).userData.friendly =
-      name;
-    const head = new T.Mesh(new T.SphereGeometry(0.3, 8, 6), friendlyBody);
-    head.userData.friendly = name;
-    head.position.set(x, 1.8, z);
-    scene.add(head);
-    for (const a of [-0.23, 0.23])
-      box(
-        0.23,
-        0.65,
-        0.3,
-        friendlyBody,
-        x + a,
-        0.32,
-        z,
-        false,
-      ).userData.friendly = name;
-    box(0.5, 0.07, 0.08, pale, x, 1.3, z - 0.28, false);
+    const operator = new T.Group();
+    operator.position.set(x, 0, z);
+    models.soldier(operator, true);
+    operator.traverse((o) => {
+      o.userData.friendly = name;
+    });
+    scene.add(operator);
   }
   box(3.6, 2.3, 6.5, metal, -123, 1.7, 180);
   box(3, 0.8, 0.08, black, -123, 2.25, 176.72, false);

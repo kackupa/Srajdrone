@@ -1,4 +1,6 @@
 import * as T from "three";
+import { createModels } from "./models";
+import { surfaceTexture, pineCrown, leafCrown } from "./surfaces";
 import { FLIGHT, steer, contact, movingContact, boxContact } from "./flight";
 import "./style.css";
 import { buildUnderstory } from "./understory";
@@ -27,7 +29,7 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 07</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">CONVOY INTERCEPT / PROTOTYPE 08</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">STOP ALL 3 CONVOY VEHICLES</div><div id="mission-clock"></div><div id="convoy-progress"></div><div id="cache-progress" class="small">HIDDEN CACHES · 0 / 3</div></div>
 <div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">NEXT INTERCEPT · N</button></div><div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
@@ -43,6 +45,8 @@ const renderer = new T.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = T.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = T.PCFSoftShadowMap;
 const scene = new T.Scene();
 scene.background = new T.Color("#a5b7b1");
 scene.fog = new T.FogExp2("#a5b7b1", 0.0018);
@@ -53,9 +57,21 @@ const camera = new T.PerspectiveCamera(
   1100,
 );
 camera.rotation.order = "YXZ";
-scene.add(new T.HemisphereLight(0xdbe9ff, 0x5b6041, 2.2));
+scene.add(new T.HemisphereLight(0xdbe9ff, 0x5b6041, 1.7));
 const sun = new T.DirectionalLight(0xffe4b4, 2.6);
 sun.position.set(-120, 220, 100);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {
+  left: -310,
+  right: 310,
+  top: 310,
+  bottom: -310,
+  near: 0.5,
+  far: 700,
+});
+sun.shadow.normalBias = 0.15;
+sun.shadow.bias = -0.00015;
 scene.add(sun);
 const mats: { m: T.MeshStandardMaterial; color: T.Color; hot: boolean }[] = [];
 function mat(color: number, hot = false) {
@@ -67,16 +83,22 @@ function mat(color: number, hot = false) {
   mats.push({ m, color: m.color.clone(), hot });
   return m;
 }
-const ground = mat(0x687251),
-  road = mat(0x696962),
+const models = createModels(mat);
+const road = mat(0xffffff),
   dirt = mat(0x8b8870),
   trunk = mat(0x514a38),
   leafs = [mat(0x344f3e), mat(0x455d40), mat(0x576e47)],
   armor = mat(0x665f43, true),
-  dark = mat(0x262d28, true),
-  uniform = mat(0x796b4c, true),
-  friend = mat(0x496e64),
-  stripe = mat(0xdfb774, true);
+  dark = mat(0x262d28, true);
+road.map = surfaceTexture("road");
+road.polygonOffset = true;
+road.polygonOffsetFactor = -2;
+road.polygonOffsetUnits = -2;
+const shoulder = mat(0x655b45);
+shoulder.polygonOffset = true;
+shoulder.polygonOffsetFactor = -1;
+shoulder.polygonOffsetUnits = -1;
+const birch = mat(0xa2aa96);
 function mesh(
   g: T.BufferGeometry,
   m: T.Material,
@@ -87,6 +109,8 @@ function mesh(
 ) {
   const o = new T.Mesh(g, m);
   o.position.set(x, y, z);
+  o.castShadow = true;
+  o.receiveShadow = true;
   parent.add(o);
   return o;
 }
@@ -100,7 +124,10 @@ function box(
   z: number,
   p: T.Object3D = scene,
 ) {
-  return mesh(new T.BoxGeometry(w, h, d), m, x, y, z, p);
+  const o = mesh(new T.BoxGeometry(w, h, d), m, x, y, z, p);
+  // Thin ground layers receive shadows without self-shadow striping.
+  o.castShadow = h > 0.3;
+  return o;
 }
 const battlefield = buildBattlefield(scene, mat);
 const understory = buildUnderstory(scene, mat);
@@ -108,6 +135,9 @@ const coverBoxes = [...battlefield.solids, ...understory.solids].map((o) =>
   new T.Box3().setFromObject(o).expandByScalar(FLIGHT.radius),
 );
 
+// Soft dirt shoulders blend the road into the forest floor.
+box(19, 0.03, 600, shoulder, 0, 0.015, 0);
+box(600, 0.03, 15, shoulder, 0, 0.015, -55);
 box(14, 0.1, 600, road, 0, 0.05, 0);
 box(600, 0.11, 10, road, 0, 0.06, -55);
 
@@ -124,7 +154,9 @@ const sightBlockers: T.Object3D[] = [
   ...understory.solids,
 ];
 const trunks: T.Matrix4[] = [],
-  crowns: T.Matrix4[][] = [[], [], []];
+  crowns: T.Matrix4[][] = [[], [], []],
+  birchTrunks: T.Matrix4[] = [],
+  broadCrowns: T.Matrix4[][] = [[], [], []];
 const dummy = new T.Object3D();
 for (let i = 0; i < 1150; i++) {
   const x = (random() - 0.5) * 470,
@@ -135,24 +167,30 @@ for (let i = 0; i < 1150; i++) {
   dummy.position.set(x, h * 0.28, z);
   dummy.scale.set(0.55, h * 0.56, 0.55);
   dummy.updateMatrix();
-  trunks.push(dummy.matrix.clone());
+  (i % 4 === 0 ? birchTrunks : trunks).push(dummy.matrix.clone());
   for (let j = 0; j < 2; j++) {
     dummy.position.set(x, h * (0.52 + j * 0.2), z);
     dummy.scale.set(r * (1 - j * 0.2), h * 0.56, r * (1 - j * 0.2));
     dummy.updateMatrix();
-    crowns[i % 3].push(dummy.matrix.clone());
+    (i % 4 === 0 ? broadCrowns : crowns)[i % 3].push(dummy.matrix.clone());
   }
   treeColliders.push({ p: new T.Vector3(x, h * 0.52, z), r: r * 0.85 });
   treeColliders.push({ p: new T.Vector3(x, h * 0.23, z), r: 1.1 });
 }
 function instances(g: T.BufferGeometry, m: T.Material, list: T.Matrix4[]) {
   const o = new T.InstancedMesh(g, m, list.length);
+  o.castShadow = true;
+  o.receiveShadow = true;
   list.forEach((v, i) => o.setMatrixAt(i, v));
   scene.add(o);
   sightBlockers.push(o);
 }
 instances(new T.CylinderGeometry(1, 1, 1, 5), trunk, trunks);
-crowns.forEach((c, i) => instances(new T.ConeGeometry(1, 1, 6), leafs[i], c));
+instances(new T.CylinderGeometry(0.7, 1, 1, 6), birch, birchTrunks);
+const pineGeometry = pineCrown(),
+  broadGeometry = leafCrown();
+crowns.forEach((c, i) => instances(pineGeometry, leafs[i], c));
+broadCrowns.forEach((c, i) => instances(broadGeometry, leafs[(i + 1) % 3], c));
 for (let i = 0; i < 55; i++) {
   const x = (random() - 0.5) * 450,
     z = (random() - 0.5) * 450;
@@ -249,33 +287,11 @@ function target(
       );
     sightBlockers.push(...g.children.filter((o) => o instanceof T.Mesh));
   } else if (kind === "tank") {
-    box(4.1, 1.4, 6.6, armor, 0, 1.15, 0, g);
-    box(4.7, 0.85, 6.8, dark, 0, 0.55, 0, g);
-    box(2.5, 1, 3, armor, 0, 2.3, -0.3, g);
-    box(0.25, 0.25, 4.6, armor, 0, 2.4, -3, g);
-    box(0.7, 0.15, 1, stripe, 0, 2.85, 0, g);
+    models.tank(g);
   } else if (kind === "truck") {
-    box(3, 1, 6, dark, 0, 0.7, 0, g);
-    box(3, 2.2, 2.2, armor, 0, 2, -2, g);
-    box(3, 2.3, 3.6, armor, 0, 2, 0.9, g);
-    box(2.5, 0.7, 0.05, dark, 0, 2.45, -3.13, g);
-    for (const a of [-1.6, 1.6])
-      for (const b of [-2, 1.8]) {
-        const w = mesh(
-          new T.CylinderGeometry(0.7, 0.7, 0.35, 10),
-          dark,
-          a,
-          0.7,
-          b,
-          g,
-        );
-        w.rotation.z = Math.PI / 2;
-      }
+    models.truck(g);
   } else {
-    box(0.8, 1, 0.55, uniform, 0, 1.25, 0, g);
-    mesh(new T.SphereGeometry(0.3, 8, 6), uniform, 0, 2, 0, g);
-    for (const x of [-0.24, 0.24]) box(0.25, 0.8, 0.3, dark, x, 0.4, 0, g);
-    box(1.3, 0.25, 0.25, uniform, 0, 1.3, -0.3, g);
+    models.soldier(g);
   }
 
   if (kind === "tank" || kind === "truck") {

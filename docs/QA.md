@@ -1,3 +1,19 @@
+# Models and scenery QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities; all 24 tests passed and the final production build passed. Existing bundle advisory: approximately 582kB / 159kB gzip.
+- Isolated Chromium at 1440×900: inspected the mixed conifer/broadleaf forest, textured ground, road shoulders and directional shadows from recon, then the friendly operator from the launch pad in normal and thermal views. Cyan armbands/chevron and the warm body remain visible.
+- Actual keyboard camera aiming and wheel zoom reached 8× on the moving convoy. Left-click marked the tank. Inspected visual-tank-normal.png, visual-tank-thermal.png and visual-truck-normal.png for tracks, turret, stowage, cab, wheels and ribbed canvas body.
+- Completed all three convoy kills using ordinary keyboard FPV flight with read-only diagnostic steering: 52.98 simulated seconds, three sorties and 4,480 points. Each hit returned automatically to recon without an unexpected pause or result modal. Inspected convoy-success.png for the wreck, fire and smoke.
+- New vehicle/infantry meshes use the existing thermal material registration, wreck replacement and animated leg paths. Tree placement and collision spheres retain their deterministic layout; rendered crown geometry now supplies the revised sightlines.
+- Close-up review found shadow/depth striping on thin road layers. They now receive shadows without casting them, and use separate depth offsets from the terrain.
+- Browser console inspection after the vehicle checks reported zero errors and warnings. QA captures and scripts remain under ignored output/playwright/.
+
+## Limits
+This is a stylized procedural art pass, not photorealism. No external assets or real-world imagery were imported. Target hit spheres remain generous arcade approximations. Full convoy flight and vehicle sensor/marking were rechecked; cache interception and controlled foliage concealment were not replayed this pass. Friendly thermal appearance was inspected, but the friendly-click capture in this run moved the camera off the operator, so it does not independently revalidate the previous friendly-click assertion. Low-end GPU performance, other browsers and long-session balance remain untested.
+
+---
+
 # Friendly-team visibility QA — 1 November 2026
 
 ## Verified
