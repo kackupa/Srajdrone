@@ -19,6 +19,10 @@ Recon circles automatically at high altitude. Mouse aiming is independent of fli
 
 Press E to mark a visible enemy and F to launch an FPV from the sheltered friendly forest team. The launch clearing is off the road, beside operators, equipment, a supply van, a timber dugout and camouflage netting. Space climbs through the clear opening.
 
+Each FPV launches with 60 seconds of battery. Hovering and normal flight drain it at the same rate; moving with Shift held uses 1.8× power. The HUD shows charge, remaining normal-power time and elapsed flight time. Warnings appear at 15 and 7 seconds. Pause freezes the battery. Power depletion briefly cuts the feed and automatically returns to recon, with no explosion or result menu. The next launch gets a fresh battery. Recon has no battery countdown.
+
+The heart-shaped aiming reticle has an exact centre dot and highlights visible targets in both normal and thermal vision.
+
 Hit a vehicle, soldier or pillbox to destroy it. After any FPV impact or shootdown, a brief impact effect switches directly back to recon. There is no sortie return menu, and another drone can launch immediately. Recon health persists; losing recon ends the operation and shows Restart.
 
 Vehicles enter and leave on both roads. A vehicle must see a low drone in its forward viewing area with an unobstructed sightline to react. Trucks accelerate and swerve faster; tanks maneuver more slowly while their machine guns defend them. Soldiers and pillboxes fire on exposed drones. Tracking warnings, tracers and red damage flashes give feedback.
@@ -41,6 +45,8 @@ Trees and solid fortifications block sight and fire. Two enemy trench sections h
 TypeScript + Three.js + Vite; original procedural assets, no backend or saves. Terrain scars, broken trees, vehicle camouflage and netting provide the first battlefield art pass. Netting is visual; solid timber, earth, trees and concrete provide gameplay cover.
 
 Movement, weapon behavior and detection are fictional arcade abstractions. Targets use generous one-hit collision spheres, including pillboxes. Trenches are recessed but have simple rectangular layouts. Trees use simplified drone collision volumes; solid cover uses swept box collision. Visibility/projectiles use rendered cover geometry. Roads have no vehicle-to-vehicle avoidance. Infantry and pillboxes do not respawn. Marks track surviving targets until they leave the map.
+
+Visual research and X access limits are recorded in [docs/VISUAL_REFERENCES.md](docs/VISUAL_REFERENCES.md).
 
 See [docs/QA.md](docs/QA.md) for actual checks and remaining limitations. Temporary browser artifacts are ignored under output/playwright/.
 

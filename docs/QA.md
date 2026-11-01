@@ -1,3 +1,21 @@
+# Battery and heart reticle QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. All 16 tests and production build passed.
+- New tests check normal/boost power budgets across 20, 60 and 144 simulation steps per second, depletion clamping, warning thresholds and countdown formatting.
+- Chromium at 1440×900: actual F launch and Space climb above 85m; battery visibly drained. Escape pause held battery exactly constant during a 1.2-second check; resume continued the sortie.
+- ShiftRight + Space consumed approximately 1.784 seconds of battery per simulated second over a short interval including key transitions, consistent with the configured 1.8× rate.
+- Let the active sortie run naturally to low battery, then critical battery and zero. No state mutations, clock acceleration or teleporting were used.
+- At zero, last outcome was FPV BATTERY DEPLETED; camera returned to recon automatically, result modal stayed hidden, gameOver was false, kills stayed zero and the game remained unpaused.
+- Immediate F relaunch produced a fresh FPV with 59.9833 seconds remaining on the sampled frame.
+- Visually inspected battery-heart.png and battery-critical-thermal-720.png. Heart/dot remained centred and readable; thermal + 1.3× zoom worked; battery, launch card and map did not overlap at 1280×720. Low-warning screenshot also captured.
+- Final browser console: zero errors and warnings.
+
+## Limits
+60 seconds is initial arcade balance, not real hardware endurance; extended human tuning remains open. Sound alerts are implemented but subjective loudness was not auditioned. Other browsers, mobile and low-end performance were not tested this update. X clips could not be played; research access limits are recorded in VISUAL_REFERENCES.md. Existing build chunk-size advisory remains (~562kB, 152kB gzip). Earlier QA below is historical.
+
+---
+
 # Battlefield and automatic return QA — 1 November 2026
 
 ## Verified

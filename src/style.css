@@ -113,33 +113,27 @@ kbd {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   transform: translate(-50%, -50%);
-  border: 1px solid #efffc277;
-  border-radius: 50%;
+  color: #f4ffdc;
+  filter: drop-shadow(0 1px 2px #000);
 }
-.cross:before,
-.cross:after {
-  content: "";
-  position: absolute;
-  background: #e7ffc4;
+.cross svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-.cross:before {
-  width: 12px;
-  height: 1px;
-  top: 15px;
-  left: 9px;
+.cross path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
 }
-.cross:after {
-  height: 12px;
-  width: 1px;
-  left: 15px;
-  top: 9px;
+.cross circle {
+  fill: currentColor;
 }
 .cross.ready {
-  border-color: #ffb273;
-  box-shadow: 0 0 0 6px #ffb27322;
+  color: #ffb273;
 }
 .aim-label {
   position: absolute;
@@ -490,5 +484,116 @@ button.primary kbd {
   }
   .telemetry {
     top: 48%;
+  }
+}
+
+.battery {
+  position: absolute;
+  right: 30px;
+  top: 370px;
+  width: 230px;
+  padding: 13px 16px;
+  color: #e6ffc3;
+  background: #10201eea;
+  border: 1px solid currentColor;
+  font: 11px/1.7 monospace;
+  text-shadow: 0 1px 2px #000;
+}
+.battery-heading {
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 0.08em;
+}
+.battery strong {
+  display: block;
+  font-size: 34px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+.battery-track {
+  height: 4px;
+  background: #ffffff22;
+  margin: 8px 0;
+}
+#battery-fill {
+  height: 100%;
+  background: currentColor;
+}
+.battery[data-level="low"] {
+  color: #ffd28a;
+}
+.battery[data-level="critical"] {
+  color: #ff9e92;
+  border-width: 2px;
+  background: #351c1ef2;
+}
+.feed-timer {
+  color: #c8d5cb;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.feed-loss {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    #132025fa 0px,
+    #132025fa 3px,
+    #263537fa 4px,
+    #263537fa 5px
+  );
+}
+.feed-loss span {
+  position: absolute;
+  top: 45%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 16px/2 monospace;
+  letter-spacing: 0.14em;
+  color: #e0e9de;
+}
+@media (max-height: 780px) {
+  .battery {
+    top: 335px;
+    padding: 9px 12px;
+    width: 210px;
+  }
+  .battery strong {
+    font-size: 27px;
+  }
+  .feed-timer {
+    display: none;
+  }
+}
+@media (max-width: 850px) {
+  .battery {
+    right: 16px;
+    width: 230px;
+    top: 380px;
+  }
+}
+
+@media (max-height: 780px) {
+  .launch-card {
+    padding: 12px;
+  }
+  .launch-card p {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 8px 0;
+  }
+  .launch-card button {
+    padding: 11px 9px;
+    font-size: 12px;
+  }
+  .launch-hint {
+    font-size: 9px;
+    margin-top: 6px;
+  }
+  .battery {
+    top: 325px;
   }
 }

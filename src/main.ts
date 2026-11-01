@@ -1,6 +1,7 @@
 import * as T from "three";
 import { FLIGHT, steer, contact, movingContact, boxContact } from "./flight";
 import "./style.css";
+import { BATTERY, drainBattery, batteryLevel, clockText } from "./battery";
 import {
   BATTLE,
   orbitVelocity,
@@ -16,16 +17,16 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">FOREST OPERATION / PROTOTYPE 03</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">FOREST OPERATION / PROTOTYPE 04</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">0 / 9 TARGETS DESTROYED</div></div>
 <div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
-<div class="battle-status"><div id="autopilot">RECON AUTOPILOT · HIGH ORBIT</div><div id="health">RECON 100% · FPV READY</div><div id="threat">HIGH ORBIT · SCANNING</div></div><div class="damage-vignette" id="damage"></div><div id="cross" class="cross"></div><div id="aim" class="aim-label"></div><div id="markers"></div>
-<div class="toast" id="toast"></div><div id="pointer">CLICK THE VIEW TO CAPTURE MOUSE · ESC TO RELEASE / PAUSE</div>
+<div class="battle-status"><div id="autopilot">RECON AUTOPILOT · HIGH ORBIT</div><div id="health">RECON 100% · FPV READY</div><div id="threat">HIGH ORBIT · SCANNING</div></div><div class="damage-vignette" id="damage"></div><div id="cross" class="cross" aria-label="Heart aiming reticle"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 33 C16 29 4 21 4 13 C4 4 15 3 20 11 C25 3 36 4 36 13 C36 21 24 29 20 33 Z"/><circle cx="20" cy="20" r="1.3"/></svg></div><div id="aim" class="aim-label"></div><div id="markers"></div>
+<div id="battery" class="battery" hidden><div class="battery-heading"><span>FPV BATTERY</span><span id="battery-percent">100%</span></div><strong id="battery-time">01:00</strong><div class="battery-track"><div id="battery-fill"></div></div><div id="battery-status">FLIGHT TIME REMAINING</div><div class="feed-timer">● REC <span id="flight-time">00:00</span></div></div><div id="feed-loss" class="feed-loss" hidden><span>FPV POWER LOST<br>RESTORING RECON FEED</span></div><div class="toast" id="toast"></div><div id="pointer">CLICK THE VIEW TO CAPTURE MOUSE · ESC TO RELEASE / PAUSE</div>
 <div class="bottom"><div><div class="actions"><button id="tag"><kbd>E</kbd>MARK</button><button id="thermal"><kbd>T</kbd>THERMAL</button><button id="pause">PAUSE</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>SECTOR / BIRCH</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ MARKED &nbsp; + LAUNCH</div></div></div></div>
 <div class="flash" id="flash"></div>
-<div class="modal" id="intro"><div class="panel"><div class="eyebrow">SINGLE PLAYER / FOREST OPERATION</div><h1>Eyes above.<br>Action below.</h1><p>Your recon UAV circles high on autopilot. WASD and Space/Ctrl override it; release to resume the loop. Enemy crews fire on low, exposed drones. Press E to mark a visible enemy. Then press F to launch a waiting FPV drone and switch to its camera.</p><div class="steps"><div><b>01 / OBSERVE</b>Zoom + thermal</div><div><b>02 / MARK</b>Press E on a target</div><div><b>03 / LAUNCH</b>Press F, then fly</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>KEYBOARD + MOUSE · ARCADE FLIGHT · ORIGINAL FICTIONAL MAP</footer></div></div>
-<div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>WASD overrides recon autopilot or flies the FPV. Mouse aims. Space climbs, Ctrl descends. Shift boosts. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button></div></div>
+<div class="modal" id="intro"><div class="panel"><div class="eyebrow">SINGLE PLAYER / FOREST OPERATION</div><h1>Eyes above.<br>Action below.</h1><p>Your recon UAV circles high on autopilot. WASD and Space/Ctrl override it; release to resume the loop. Enemy crews fire on low, exposed drones. Press E to mark a visible enemy. Then press F to launch a waiting FPV drone and switch to its camera. Each FPV has 60 seconds of battery; boosting uses it faster.</p><div class="steps"><div><b>01 / OBSERVE</b>Zoom + thermal</div><div><b>02 / MARK</b>Press E on a target</div><div><b>03 / LAUNCH</b>Press F, then fly</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>KEYBOARD + MOUSE · ARCADE FLIGHT · ORIGINAL FICTIONAL MAP</footer></div></div>
+<div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>WASD overrides recon autopilot or flies the FPV. Mouse aims. Space climbs, Ctrl descends. Shift boosts and drains battery faster. Each FPV starts with 60 seconds; pause stops the countdown. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button></div></div>
 <div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">OPERATION LOST</div><h1 id="resultTitle">Recon UAV lost.</h1><p id="resultText"></p><button class="primary" id="continue">RESTART OPERATION →</button></div></div>`;
 const canvas = $("view") as HTMLCanvasElement;
 const renderer = new T.WebGLRenderer({ canvas, antialias: true });
@@ -369,6 +370,22 @@ function audioStart() {
   volume.connect(audio.destination);
   rotor.start();
 }
+function batteryBeep(critical: boolean) {
+  if (!audio || muted) return;
+  const tone = audio.createOscillator(),
+    gain = audio.createGain();
+  tone.frequency.value = critical ? 880 : 660;
+  gain.gain.setValueAtTime(0.035, audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.18);
+  tone.connect(gain);
+  gain.connect(audio.destination);
+  tone.onended = () => {
+    tone.disconnect();
+    gain.disconnect();
+  };
+  tone.start();
+  tone.stop(audio.currentTime + 0.2);
+}
 function boom() {
   if (!audio || muted) return;
   const n = audio.sampleRate * 0.6,
@@ -410,6 +427,9 @@ function explode(p: T.Vector3) {
 }
 const spawn = new T.Vector3(LAUNCH.x, LAUNCH.y, LAUNCH.z),
   recon = new T.Vector3(0, 155, 175);
+let batterySeconds = BATTERY.capacity,
+  flightSeconds = 0,
+  boosting = false;
 let reconHealth = 100,
   fpvHealth = 100,
   gameOver = false,
@@ -462,12 +482,13 @@ function sensor() {
 }
 function updateMode() {
   const isRecon = mode === "recon";
+  $("battery").hidden = isRecon;
   $("launch-title").textContent = isRecon
     ? "FPV DRONE READY"
     : "YOU ARE CONTROLLING THE FPV DRONE";
   $("launch-copy").textContent = isRecon
-    ? "Recon circles automatically. Press F to launch from the sheltered forest team."
-    : "Launch from the forest team. Climb through the opening with Space. Trucks and tanks react when they spot you.";
+    ? "Recon circles automatically. Press F to launch a fresh FPV with 60 seconds of battery."
+    : "Space to take off. Battery runs from launch. Boost drains it 1.8× faster. Heart centre dot is your aim point.";
   $("launch-hint").textContent = isRecon
     ? "No target mark required. Esc opens clickable controls."
     : "Release movement to brake. Press F to return to recon.";
@@ -498,6 +519,9 @@ function switchMode() {
     yaw = 0;
     pitch = 0;
     fpvHealth = 100;
+    batterySeconds = BATTERY.capacity;
+    flightSeconds = 0;
+    boosting = false;
     sorties++;
     manualUntil = 0;
     manual = false;
@@ -537,7 +561,8 @@ function finish(hit?: Target, reason = "collision") {
   ended = true;
   keys.clear();
   velocity.set(0, 0, 0);
-  explode(gameOver ? recon : hit ? hit.p : position);
+  if (reason !== "battery") explode(gameOver ? recon : hit ? hit.p : position);
+  $("feed-loss").hidden = reason !== "battery";
   if (hit) {
     hit.alive = false;
     hit.respawn =
@@ -554,7 +579,7 @@ function finish(hit?: Target, reason = "collision") {
     hit.group.updateMatrixWorld(true);
     hit.muzzle.visible = false;
   }
-  $("flash").classList.add("on");
+  if (reason !== "battery") $("flash").classList.add("on");
   setTimeout(() => $("flash").classList.remove("on"), 120);
   if (gameOver) {
     document.exitPointerLock();
@@ -571,11 +596,14 @@ function finish(hit?: Target, reason = "collision") {
   // Automatic feed handoff keeps pointer lock and never opens the sortie menu.
   const message = hit
     ? hit.name + " DESTROYED"
-    : reason === "gunfire"
-      ? "FPV SHOT DOWN"
-      : "FPV LOST";
+    : reason === "battery"
+      ? "FPV BATTERY DEPLETED"
+      : reason === "gunfire"
+        ? "FPV SHOT DOWN"
+        : "FPV LOST";
   lastOutcome = message;
   setTimeout(() => {
+    $("feed-loss").hidden = true;
     ended = false;
     mode = "fpv";
     switchMode();
@@ -1054,7 +1082,7 @@ function frame(dt: number) {
     desired.multiplyScalar(
       mode === "recon"
         ? 45
-        : keys.has("ShiftLeft")
+        : keys.has("ShiftLeft") || keys.has("ShiftRight")
           ? FLIGHT.boost
           : FLIGHT.speed,
     );
@@ -1092,6 +1120,26 @@ function frame(dt: number) {
       velocity.copy(steer(velocity, desired, dt));
     }
     battleStep(dt);
+    if (!ended && mode === "fpv") {
+      boosting =
+        (keys.has("ShiftLeft") || keys.has("ShiftRight")) &&
+        desired.lengthSq() > 0;
+      const previousBattery = batterySeconds;
+      batterySeconds = drainBattery(batterySeconds, dt, boosting);
+      flightSeconds += dt;
+      if (previousBattery > BATTERY.low && batterySeconds <= BATTERY.low) {
+        toast("LOW BATTERY · 15s AT NORMAL POWER");
+        batteryBeep(false);
+      }
+      if (
+        previousBattery > BATTERY.critical &&
+        batterySeconds <= BATTERY.critical
+      ) {
+        toast("BATTERY CRITICAL · 7s AT NORMAL POWER");
+        batteryBeep(true);
+      }
+      if (batterySeconds === 0) finish(undefined, "battery");
+    }
     if (!ended && mode === "fpv") {
       const next = position.clone().addScaledVector(velocity, dt);
       let earliest = Infinity,
@@ -1171,6 +1219,21 @@ function frame(dt: number) {
       "0",
     ) + "°";
   $("zoom").textContent = "OPTICAL " + zoom.toFixed(1) + "×";
+  $("battery").dataset.level = batteryLevel(batterySeconds);
+  $("battery-percent").textContent =
+    Math.ceil((batterySeconds / BATTERY.capacity) * 100) + "%";
+  $("battery-time").textContent = clockText(batterySeconds);
+  $("battery-fill").style.width =
+    (batterySeconds / BATTERY.capacity) * 100 + "%";
+  $("battery-status").textContent =
+    batterySeconds <= BATTERY.critical
+      ? "CRITICAL · POWER RUNNING OUT"
+      : batterySeconds <= BATTERY.low
+        ? "LOW BATTERY" + (boosting ? " · BOOST 1.8× DRAIN" : "")
+        : boosting
+          ? "BOOST · 1.8× DRAIN"
+          : "FLIGHT TIME REMAINING";
+  $("flight-time").textContent = clockText(Math.floor(flightSeconds));
   $("sorties").textContent = "SORTIE " + String(sorties).padStart(2, "0");
   $("score").textContent =
     kills + " DESTROYED · " + trafficPassed + " VEHICLES EXITED";
@@ -1238,6 +1301,9 @@ Object.defineProperty(window, "gameState", {
     simTime,
     reconHealth,
     fpvHealth,
+    batterySeconds,
+    flightSeconds,
+    boosting,
     manual,
     threatCount,
     shotsFired,
