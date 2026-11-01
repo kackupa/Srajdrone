@@ -725,3 +725,110 @@ button:disabled {
     bottom: 130px;
   }
 }
+
+/* Quest board: selectable briefings before a run, keyboard accessible. */
+#intro {
+  padding: 20px;
+  overflow-y: auto;
+}
+.quest-panel {
+  width: min(960px, 96vw);
+  padding: 30px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+.quest-panel h1 {
+  font-size: 38px;
+  margin: 14px 0 8px;
+}
+.quest-panel .board-intro {
+  margin: 0 0 20px;
+  font-size: 13px;
+}
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.panel .quest-card {
+  text-align: left;
+  padding: 16px;
+  background: #0b171aaa;
+  border: 1px solid #66816b66;
+  color: #d6e1d3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quest-card[aria-pressed="true"] {
+  background: #263b2e;
+  border-color: #d5f68b;
+  box-shadow: inset 0 3px #d5f68b;
+}
+.quest-card:focus-visible {
+  outline: 2px solid #8ce8ff;
+  outline-offset: 3px;
+}
+.quest-card .quest-number {
+  color: #9caf91;
+  font: 11px monospace;
+}
+.quest-card strong {
+  font-size: 17px;
+}
+.quest-card span:not(.quest-number) {
+  font: 12px/1.5 monospace;
+  text-transform: none;
+  letter-spacing: 0;
+  min-height: 38px;
+}
+.quest-card small {
+  color: #d5f68b;
+  font: 10px/1.5 monospace;
+  margin-top: auto;
+}
+.quest-briefing {
+  margin: 20px 0;
+  padding: 18px;
+  background: #070f1270;
+  border-left: 2px solid #d5f68b;
+}
+.quest-briefing h2 {
+  margin: 8px 0;
+  font-size: 21px;
+}
+.quest-briefing p {
+  font-size: 13px;
+  margin: 8px 0 14px;
+}
+.quest-briefing .small {
+  font-size: 9px;
+  line-height: 1.7;
+}
+#quest-board {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 11px;
+}
+@media (max-width: 650px) {
+  .quest-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .panel .quest-card {
+    padding: 12px;
+    gap: 5px;
+  }
+  .quest-card span:not(.quest-number) {
+    min-height: 0;
+  }
+  .quest-card .quest-number {
+    display: none;
+  }
+  .quest-panel {
+    padding: 20px;
+  }
+  .quest-panel h1 {
+    font-size: 29px;
+  }
+}

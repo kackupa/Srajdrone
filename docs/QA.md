@@ -1,3 +1,24 @@
+# Quest board, cache search and courier trail QA — 1 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. All 30 tests passed; production build passed. Existing bundle advisory: approximately 602kB / 166kB gzip.
+- New tests cover the correct cache versus bonus caches, no convoy dependency in search quests, courier identity/progression, premature courier/cache loss, timeout, terminal-state protection, variant normalization and reserved walking corridors.
+- Chromium at 1280×720: selected different quest cards before launch, checked distinct briefings/timers and no pre-marked targets, then started the selected quest. Inspected quest-board.png and quest-board-final.png; selected-card state and briefing agree after the selection animation settles.
+- Hidden arsenal, west variant: physically flew an FPV into the designated cache. Completed at 8.55 simulated seconds with 4,710 points and one sortie; the cache burned, recon returned automatically without a pause/modal, and the completion report offered the quest board.
+- Pressing N returned to the board with the next variant. Selected Courier trail without a stale convoy mission or target state.
+- Courier trail, south-east variant: used arrow camera controls and zoom to acquire the courier and left-click to confirm him. Tested normal/thermal views, tracked his movement, paused/resumed and verified the quest clock stayed frozen while paused. At the end of the route the search sector shrank, the courier remained alive and the only marked target was the courier; the stash was not automatically tagged.
+- Physically flew an FPV into the revealed stash. Courier quest completed at 41.11 simulated seconds with 4,845 points, one sortie and a burning cache. Automatic recon return and the completion report worked.
+- Replayed Convoy intercept from the new board: all three kills in 53.89 simulated seconds, three sorties, 4,470 points. All impacts returned automatically to recon and no sortie result modal appeared.
+- Screenshot review found stale launch-card guidance after the courier reached his destination. Corrected stage guidance and replayed identification/follow through arrival; the card now instructs the player to search the smaller sector and destroy the cache.
+- Pause > Abandon / Quest board returned to a fresh unstarted mission board. Selecting Hidden arsenal updated its pressed state and briefing correctly.
+- A separate manual camera/left-click pass on the west cache displayed PRIMARY CACHE CONFIRMED; inspecting it did not complete the quest.
+- Final browser console check reported zero errors/warnings. Temporary scripts/screenshots remain under ignored output/playwright/.
+
+## Limits
+Browser runs used ordinary inputs with read-only diagnostic coordinates for steering, not teleporting, health edits or accelerated clocks. Their short completion times do not measure human search difficulty. Cache west and courier south-east received full browser runs; other sectors have rule/path tests but were not separately completed in-browser. Failure rules have unit tests rather than a separate browser run for every failure. The courier follows a fixed reserved path after identification and continues if the camera looks away; there is no continuous tracking requirement, advanced navigation, saved quest progression or unlock economy. Clue visibility, natural discovery difficulty, long-session balance, other browsers and low-end hardware need player testing.
+
+---
+
 # Manual convoy spotting QA — 1 November 2026
 
 - npm install completed with zero reported vulnerabilities; 24 tests and the production build passed. Existing bundle advisory: approximately 593kB / 163kB gzip.

@@ -10,14 +10,31 @@ npm run dev -- --port 5178
 npm test
 npm run build
 ```
-Open http://127.0.0.1:5178 and click Begin operation.
+Open http://127.0.0.1:5178, choose a quest and click Begin operation.
+
+## Quest board
+Choose one of three independent operations before clicking Begin operation:
+
+| Quest | Objective | Time |
+| --- | --- | --- |
+| Convoy intercept | Find and stop all three convoy vehicles before one escapes. | 2:35 |
+| Hidden arsenal | Search the approximate amber sector and destroy its designated weapons cache. | 5:00 |
+| Courier trail | Identify the courier, keep him alive as he walks to the stash, then destroy that cache. | 6:00 |
+
+The courier's visual clues are an orange backpack and dark hand-carried case. Left-clicking the correct person starts his route; marking other soldiers does not advance the quest. His arrival shrinks the search sector, but never automatically tags the cache. Destroying the courier before he arrives, or destroying his stash before confirming the trail, fails that quest. The trail continues after identification even if the camera looks away; this prototype does not require continuous visual contact.
+
+Cache search briefs describe stacked crates beneath a green tarp, a fallen log and a small warm equipment box. Only the designated sector's cache completes the quest; other caches are optional bonuses. Marking distinguishes primary and secondary caches. Search quests have no convoy arrivals or escape objective. Local infantry and fortifications still defend themselves.
+
+Each search quest awards 750 points per destroyed cache, plus 2,000 on completion, five per remaining second (rounded up) and 100 for each drone below six used. Scores are per run; there is no saved quest progression or unlock economy.
+
+After success/failure, N or Quest board opens a fresh board with the next of three encounter variants. Pause offers Restart quest or Abandon / Quest board. Each new run resets the mission. The three cache/courier variants use west, south-east and north-east woodland sectors. Courier walking corridors are reserved from random trees and brush.
 
 ## Convoy Intercept
 Stop all three convoy vehicles before any escapes the forest road. A 12-second preparation countdown precedes staggered arrivals. The operation lasts at most 2:35, including preparation. The expected convoy route and entry/exit appear on the map as briefing information. Vehicles arrive unmarked: their positions and world tags stay hidden until you aim at a visible target and left-click. Arrival reports do not tag vehicles, and simply looking at a vehicle does not tag it. Concealed caches also stay off the map until marked.
 
 Each convoy vehicle destroyed earns 1,000 points. Completing the mission adds 10 points per remaining second (rounded up) and 150 for each drone below six used. A vehicle escaping or time expiring fails the operation. FPV loss alone does not.
 
-After each impact, shootdown or exhausted battery, the camera automatically returns to recon. There is no sortie return menu. After a successful hit, recon looks toward the destroyed target so the wreck and smoke remain visible. Mission success/failure appears as a compact report in recon; press N for the next intercept. Three encounter presets vary arrival gaps, speed and road direction. Escape also offers restart. Recon now remains safely above the enemy fire ceiling.
+After each impact, shootdown or exhausted battery, the camera automatically returns to recon. There is no sortie return menu. After a successful hit, recon looks toward the destroyed target so the wreck and smoke remain visible. Mission success/failure appears as a compact report in recon; press N for the quest board. Three encounter presets vary arrival gaps, speed and road direction. Escape also offers restart. Recon now remains safely above the enemy fire ceiling.
 
 Three low-profile ammo caches are optional bonus targets worth 750 points each. Search the foliage with the orbiting camera, zoom and thermal: crates and tarps blend into the terrain, while a small warm equipment box offers a thermal clue. Foliage still occludes thermal; it does not reveal caches through cover. Caches do not count toward the three convoy kills or prolong a completed mission.
 
@@ -51,7 +68,7 @@ The forest still uses the preceding stylized mixed conifer/broadleaf trees, proc
 - F: launch FPV / manually switch to recon. E no longer marks.
 - T: normal / thermal. Wheel: zoom.
 - Escape: pause and clickable controls. M: mute. V: reduce flight motion.
-- N: next intercept after mission completion.
+- N: open the quest board after mission completion. Pause also offers Abandon / Quest board.
 
 ## Prototype boundaries
 TypeScript + Three.js + Vite; original procedural assets, no backend or saves. Original map, not extracted Google Maps data. Timber, earth, trees and concrete block sight/fire; camouflage netting is decorative. Dense shrubs, low foliage and four open-centred thickets provide new hiding spaces. Brush breaks enemy sightlines but is soft to fly through; already-fired bullets can pass through it. Logs and earth banks are solid obstacles that stop fire and collide with FPVs.
