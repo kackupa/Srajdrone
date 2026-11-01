@@ -1,6 +1,6 @@
 # Srajdrone
 
-Standalone desktop browser FPV combat game prototype. Original fictional forest map and procedural artwork.
+Standalone desktop browser FPV combat prototype with an original fictional forest battlefield.
 
 ## Run
 
@@ -11,36 +11,36 @@ npm run dev -- --port 5178
 npm test
 npm run build
 ```
-Open http://127.0.0.1:5178. Click Begin operation.
+Open http://127.0.0.1:5178 and click Begin operation.
 
-## The hunt
+## Operation
 
-The recon UAV circles continuously at high altitude. Mouse aiming is independent of flight and its view stabilizes on the ground during the automatic orbit. WASD and Space/Ctrl temporarily override the aircraft; releasing movement resumes its high loop. The recon keeps orbiting while you fly an FPV.
+Recon circles automatically at high altitude. Mouse aiming is independent of flight. WASD and Space/Ctrl temporarily override the aircraft; release movement to resume its high loop. Recon keeps orbiting while you fly an FPV.
 
-Aim at a visible vehicle or patrol and press E to mark it. Press F to launch a fresh FPV beside the friendly squad, or press Escape and click Launch FPV drone. Fly into a target to destroy it. Vehicle traffic enters and leaves along both roads; destroyed/exited vehicles are replaced after a delay. Patrols walk the shoulders. This is an ongoing hunt scored by targets destroyed, rather than a finite nine-target mission.
+Press E to mark a visible enemy and F to launch an FPV from the sheltered friendly forest team. The launch clearing is off the road, beside operators, equipment, a supply van, a timber dugout and camouflage netting. Space climbs through the clear opening.
 
-Rifle patrols and tank machine guns spot low, exposed drones before firing visible projectiles. Tanks stop to engage. Trees block both sight and projectiles; breaking sight drains enemy tracking. High altitude keeps you outside the deliberately limited arcade defense envelope. Incoming hits show a red flash and reduce health. FPV losses are recoverable; recon health persists and its destruction ends the operation. Restart resets the entire operation.
+Hit a vehicle, soldier or pillbox to destroy it. After any FPV impact or shootdown, a brief impact effect switches directly back to recon. There is no sortie return menu, and another drone can launch immediately. Recon health persists; losing recon ends the operation and shows Restart.
+
+Vehicles enter and leave on both roads. A vehicle must see a low drone in its forward viewing area with an unobstructed sightline to react. Trucks accelerate and swerve faster; tanks maneuver more slowly while their machine guns defend them. Soldiers and pillboxes fire on exposed drones. Tracking warnings, tracers and red damage flashes give feedback.
+
+Trees and solid fortifications block sight and fire. Two enemy trench sections have recessed floors, timber walls, duckboards and sandbags. Two pillboxes can be destroyed permanently during the operation; destroyed structures remain as rubble. Patrols walk the trench paths and roadside. Vehicle replacements keep the hunt going.
 
 ## Controls
 
-- WASD: recon manual override / FPV forward, backward and strafe. FPV forward follows the view.
-- Mouse: aim; click the view to capture the mouse.
+- WASD: recon override / FPV forward, backward and strafe. FPV forward follows the view.
+- Mouse: aim; click the view to capture it.
 - Space: climb. Ctrl or C: descend.
 - Shift: FPV boost. Release FPV movement to brake and hover.
 - Arrow keys: alternative aiming.
-- E: mark the target under the reticle.
-- F: launch FPV / return to recon.
-- T: normal / simulated thermal vision.
-- Wheel: zoom (recon up to 8×, FPV up to 3×).
-- Escape: pause and clickable launch menu. M: mute.
+- E: mark. F: launch FPV / manually switch to recon.
+- T: normal / simulated thermal. Wheel: zoom.
+- Escape: pause and clickable launch controls. M: mute.
 
 ## Prototype boundaries
 
-TypeScript + Three.js + Vite, one original forest sector, no backend or saves. Original simple rifle and turret shapes, synthesized rotor/impact/gunfire audio, instanced trees and debris effects. No Google Maps or real military assets.
+TypeScript + Three.js + Vite; original procedural assets, no backend or saves. Terrain scars, broken trees, vehicle camouflage and netting provide the first battlefield art pass. Netting is visual; solid timber, earth, trees and concrete provide gameplay cover.
 
-Movement, weapon behavior and hitboxes are fictional arcade abstractions. Trees use simplified drone collision volumes, while visibility/projectile checks use their rendered geometry. Targets have generous one-hit collision spheres. Marks track surviving enemies until they leave the map. Transports do not shoot; patrols do not respawn. Traffic uses fixed road lanes without vehicle-to-vehicle avoidance. Infantry routes and combat behavior are intentionally simple.
+Movement, weapon behavior and detection are fictional arcade abstractions. Targets use generous one-hit collision spheres, including pillboxes. Trenches are recessed but have simple rectangular layouts. Trees use simplified drone collision volumes; solid cover uses swept box collision. Visibility/projectiles use rendered cover geometry. Roads have no vehicle-to-vehicle avoidance. Infantry and pillboxes do not respawn. Marks track surviving targets until they leave the map.
 
-## Validation
-
-See [docs/QA.md](docs/QA.md) for actual test results and remaining limitations. Temporary browser captures are ignored under output/playwright/.
+See [docs/QA.md](docs/QA.md) for actual checks and remaining limitations. Temporary browser artifacts are ignored under output/playwright/.
 

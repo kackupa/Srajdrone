@@ -1,3 +1,22 @@
+# Battlefield and automatic return QA — 1 November 2026
+
+## Verified
+- npm install, npm test (14 tests) and npm run build passed. Existing bundle advisory: approximately 559kB / 151kB gzip.
+- New unit checks cover front/rear vehicle perception on both roads, faster truck evasion, road bounds and lane recovery, off-road launch reservation, recessed trench floors, and swept collision with thin fortification walls.
+- Chromium at 1440×900: FPV spawned in the friendly clearing at x=-100, climbed above 10m without a blocked takeoff, then crashed into the ground. Within the automatic handoff it returned to recon with no result menu; immediate second launch worked.
+- Actual keyboard flight brought recon into the forward view of a transport and separately a tank. Both entered evasion and changed lateral position. Unit checks verify the speed difference and rear exclusion.
+- A guided browser flight used ordinary keyboard controls from the new launch site to strike pillbox 1. The kill count rose to one, the pillbox stayed dead/visible as rubble, awareness dropped to zero, and the camera automatically returned to recon with the result menu hidden.
+- Another actual flight hovered in enemy fire. FPV health reached zero, last outcome was FPV SHOT DOWN, recon appeared automatically, no menu opened, and a fresh FPV launched.
+- Recon was then deliberately flown low into fire. Game over persisted rather than handing off, Restart remained available, and restart restored health and the intro state.
+- Inspected battlefield-overview.png, forest-launch-final.png and friendly-shelter.png: original recessed trench geometry, camouflage shelter, equipment and a visible allied operator; takeoff opening is clear.
+- Final browser console: zero errors.
+- Browser navigation scripts read diagnostic state for assertions and steering, without teleporting entities or modifying health.
+
+## Limits
+This is the first low-poly battlefield pass. Netting is decorative; solid structures and trees provide game cover. Pillboxes use one-hit arcade destruction, not structural simulation. Vehicle avoidance does not include other vehicles. Extended human balance tests, alternative browsers, mobile/gamepad input, subjective audio and low-end GPU performance remain open. Detailed trench-floor flying was not separately browser-tested beyond the geometry/collision checks. Earlier QA sections are historical; their static-target and return-menu descriptions have been superseded.
+
+---
+
 # Moving battle QA — 1 November 2026
 
 Current implementation and limits are described in README.md. The original prototype results below are historical and superseded where mechanics changed.

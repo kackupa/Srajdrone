@@ -48,3 +48,22 @@ export function movingContact(a: V, b: V, from: V, to: V, r: number) {
     r,
   );
 }
+
+export function boxContact(a: V, b: V, min: V, max: V): number | null {
+  let lo = 0,
+    hi = 1;
+  for (const axis of ["x", "y", "z"] as const) {
+    const d = b[axis] - a[axis];
+    if (Math.abs(d) < 1e-9) {
+      if (a[axis] < min[axis] || a[axis] > max[axis]) return null;
+      continue;
+    }
+    let p = (min[axis] - a[axis]) / d,
+      q = (max[axis] - a[axis]) / d;
+    if (p > q) [p, q] = [q, p];
+    lo = Math.max(lo, p);
+    hi = Math.min(hi, q);
+    if (lo > hi) return null;
+  }
+  return lo;
+}

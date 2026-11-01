@@ -1,5 +1,5 @@
 import * as T from "three";
-import { FLIGHT, steer, contact, movingContact } from "./flight";
+import { FLIGHT, steer, contact, movingContact, boxContact } from "./flight";
 import "./style.css";
 import {
   BATTLE,
@@ -8,11 +8,15 @@ import {
   inEnvelope,
   trafficStep,
   patrolAt,
+  vehicleSees,
+  evadeOffset,
 } from "./battle";
+import { LAUNCH, TRENCHES, PILLBOXES, groundHeight, reserved } from "./layout";
+import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">FOREST OPERATION / PROTOTYPE 02</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small">FOREST OPERATION / PROTOTYPE 03</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">0 / 9 TARGETS DESTROYED</div></div>
 <div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
@@ -22,7 +26,7 @@ $("app").innerHTML = `
 <div class="flash" id="flash"></div>
 <div class="modal" id="intro"><div class="panel"><div class="eyebrow">SINGLE PLAYER / FOREST OPERATION</div><h1>Eyes above.<br>Action below.</h1><p>Your recon UAV circles high on autopilot. WASD and Space/Ctrl override it; release to resume the loop. Enemy crews fire on low, exposed drones. Press E to mark a visible enemy. Then press F to launch a waiting FPV drone and switch to its camera.</p><div class="steps"><div><b>01 / OBSERVE</b>Zoom + thermal</div><div><b>02 / MARK</b>Press E on a target</div><div><b>03 / LAUNCH</b>Press F, then fly</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>KEYBOARD + MOUSE · ARCADE FLIGHT · ORIGINAL FICTIONAL MAP</footer></div></div>
 <div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>WASD overrides recon autopilot or flies the FPV. Mouse aims. Space climbs, Ctrl descends. Shift boosts. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button></div></div>
-<div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">SORTIE COMPLETE</div><h1 id="resultTitle">Target destroyed.</h1><p id="resultText"></p><button class="primary" id="continue">RETURN TO RECON →</button></div></div>`;
+<div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">OPERATION LOST</div><h1 id="resultTitle">Recon UAV lost.</h1><p id="resultText"></p><button class="primary" id="continue">RESTART OPERATION →</button></div></div>`;
 const canvas = $("view") as HTMLCanvasElement;
 const renderer = new T.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -87,10 +91,14 @@ function box(
 ) {
   return mesh(new T.BoxGeometry(w, h, d), m, x, y, z, p);
 }
-box(1800, 1, 1800, ground, 0, -0.5, 0);
+const battlefield = buildBattlefield(scene, mat);
+const coverBoxes = battlefield.solids.map((o) =>
+  new T.Box3().setFromObject(o).expandByScalar(FLIGHT.radius),
+);
+
 box(14, 0.1, 600, road, 0, 0.05, 0);
 box(600, 0.11, 10, road, 0, 0.06, -55);
-box(32, 0.12, 35, dirt, 0, 0.07, 140);
+
 for (let z = -220; z < 230; z += 15) box(0.3, 0.13, 5, dirt, 0, 0.08, z);
 let seed = 7351;
 const random = () => {
@@ -99,19 +107,14 @@ const random = () => {
 };
 type Collider = { p: T.Vector3; r: number };
 const treeColliders: Collider[] = [];
-const sightBlockers: T.Object3D[] = [];
+const sightBlockers: T.Object3D[] = [...battlefield.blockers];
 const trunks: T.Matrix4[] = [],
   crowns: T.Matrix4[][] = [[], [], []];
 const dummy = new T.Object3D();
 for (let i = 0; i < 1150; i++) {
   const x = (random() - 0.5) * 470,
     z = (random() - 0.5) * 470;
-  if (
-    Math.abs(x) < 17 ||
-    Math.abs(z + 55) < 13 ||
-    Math.hypot(x - 13, z - 137) < 24
-  )
-    continue;
+  if (Math.abs(x) < 17 || Math.abs(z + 55) < 13 || reserved(x, z)) continue;
   const h = 9 + random() * 14,
     r = 2.5 + random() * 3;
   dummy.position.set(x, h * 0.28, z);
@@ -138,13 +141,13 @@ crowns.forEach((c, i) => instances(new T.ConeGeometry(1, 1, 6), leafs[i], c));
 for (let i = 0; i < 55; i++) {
   const x = (random() - 0.5) * 450,
     z = (random() - 0.5) * 450;
-  if (Math.abs(x) < 18 || Math.abs(z + 55) < 14) continue;
+  if (Math.abs(x) < 18 || Math.abs(z + 55) < 14 || reserved(x, z)) continue;
   mesh(new T.DodecahedronGeometry(1 + random() * 2), dirt, x, 0.5, z);
 }
 type Target = {
   id: number;
   name: string;
-  kind: "tank" | "truck" | "soldier";
+  kind: "tank" | "truck" | "soldier" | "pillbox";
   group: T.Group;
   p: T.Vector3;
   previous: T.Vector3;
@@ -164,6 +167,9 @@ type Target = {
   muzzle: T.Mesh;
   legs: T.Mesh[];
   serial: number;
+  dodge: number;
+  evadeUntil: number;
+  evadeSide: number;
 };
 let trafficPassed = 0,
   trafficEntered = 0,
@@ -174,14 +180,31 @@ function target(
   name: string,
   x: number,
   z: number,
-  kind: "tank" | "truck" | "soldier",
+  kind: "tank" | "truck" | "soldier" | "pillbox",
 ) {
   const g = new T.Group();
   scene.add(g);
   g.position.set(x, 0, z);
   const id = targets.length + 1;
   g.userData.target = id;
-  if (kind === "tank") {
+  if (kind === "pillbox") {
+    const concrete = mat(0x6a705e);
+    box(7, 2.4, 7, concrete, 0, 1.2, 0, g);
+    box(8.4, 0.65, 8.4, battlefield.soil, 0, 2.7, 0, g);
+    box(5, 0.5, 0.05, dark, 0, 1.7, -3.52, g);
+    for (let i = 0; i < 12; i++)
+      box(
+        0.9,
+        0.09,
+        1.4,
+        battlefield.camo,
+        ((i % 4) - 1.5) * 1.7,
+        3.08,
+        (Math.floor(i / 4) - 1) * 2,
+        g,
+      );
+    sightBlockers.push(...g.children.filter((o) => o instanceof T.Mesh));
+  } else if (kind === "tank") {
     box(4.1, 1.4, 6.6, armor, 0, 1.15, 0, g);
     box(4.7, 0.85, 6.8, dark, 0, 0.55, 0, g);
     box(2.5, 1, 3, armor, 0, 2.3, -0.3, g);
@@ -211,9 +234,24 @@ function target(
     box(1.3, 0.25, 0.25, uniform, 0, 1.3, -0.3, g);
   }
 
+  if (kind === "tank" || kind === "truck") {
+    for (let i = 0; i < 4; i++) {
+      const side = i % 2 ? 1 : -1;
+      box(
+        0.04,
+        0.4,
+        1.1,
+        dark,
+        side * (kind === "tank" ? 2.08 : 1.52),
+        kind === "tank" ? 1.3 : 2,
+        -1.5 + Math.floor(i / 2) * 2.2,
+        g,
+      );
+    }
+  }
   const gun = new T.Group();
   g.add(gun);
-  gun.position.y = kind === "tank" ? 3.15 : 1.4;
+  gun.position.y = kind === "pillbox" ? 3.5 : kind === "tank" ? 3.15 : 1.4;
   if (kind !== "truck") {
     box(
       kind === "tank" ? 0.3 : 0.16,
@@ -246,16 +284,24 @@ function target(
   g.traverse((o) => {
     if (o instanceof T.Mesh) o.userData.originalMaterial = o.material;
   });
-  const p = new T.Vector3(x, kind === "soldier" ? 1 : 1.5, z),
+  const p = new T.Vector3(
+      x,
+      kind === "soldier"
+        ? groundHeight(x, z) + 1
+        : kind === "pillbox"
+          ? 2
+          : 1.5,
+      z,
+    ),
     axis = (kind === "soldier" ? Math.abs(x) > 17 : Math.abs(z + 55) < 1)
       ? "x"
       : "z",
     direction = id % 2 === 0 ? 1 : -1;
-  if (kind !== "soldier") {
+  if (kind === "tank" || kind === "truck") {
     if (axis === "z") p.x = direction > 0 ? -3.3 : 3.3;
     else p.z = -55 + (direction > 0 ? 3.2 : -3.2);
   }
-  g.position.set(p.x, 0, p.z);
+  g.position.set(p.x, kind === "soldier" ? groundHeight(p.x, p.z) : 0, p.z);
   targets.push({
     id,
     name,
@@ -263,7 +309,7 @@ function target(
     group: g,
     p,
     previous: p.clone(),
-    r: kind === "soldier" ? 1 : 3.7,
+    r: kind === "soldier" ? 1 : kind === "pillbox" ? 5.3 : 3.7,
     alive: true,
     marked: false,
     axis,
@@ -279,6 +325,9 @@ function target(
     muzzle,
     legs,
     serial: 0,
+    dodge: 0,
+    evadeUntil: 0,
+    evadeSide: 1,
   });
 }
 target("ARMOR 01", 0, 40, "tank");
@@ -286,15 +335,12 @@ target("TRANSPORT 02", 0, -20, "truck");
 target("ARMOR 03", -60, -55, "tank");
 target("TRANSPORT 04", 75, -55, "truck");
 target("ARMOR 05", 0, -125, "tank");
-target("PATROL 06", 9, 15, "soldier");
+target("PATROL 06", -52, 10, "soldier");
+targets[5].axis = "z";
 target("PATROL 07", -9, -12, "soldier");
-target("PATROL 08", 50, -47, "soldier");
+target("PATROL 08", 65, -105, "soldier");
 target("PATROL 09", -40, -64, "soldier");
-box(6, 0.25, 6, friend, 0, 0.2, 140);
-for (let i = 0; i < 3; i++) {
-  box(1, 1, 0.6, friend, 12 + i * 2, 1, 139);
-  mesh(new T.SphereGeometry(0.3, 8, 6), friend, 12 + i * 2, 1.85, 139);
-}
+PILLBOXES.forEach((p, i) => target("PILLBOX " + (i + 1), p.x, p.z, "pillbox"));
 
 const wreckMaterial = new T.MeshStandardMaterial({
   color: 0x242624,
@@ -362,11 +408,12 @@ function explode(p: T.Vector3) {
     });
   }
 }
-const spawn = new T.Vector3(0, 1.2, 140),
+const spawn = new T.Vector3(LAUNCH.x, LAUNCH.y, LAUNCH.z),
   recon = new T.Vector3(0, 155, 175);
 let reconHealth = 100,
   fpvHealth = 100,
   gameOver = false,
+  lastOutcome = "",
   manualUntil = 0,
   manual = false,
   simTime = 0,
@@ -419,8 +466,8 @@ function updateMode() {
     ? "FPV DRONE READY"
     : "YOU ARE CONTROLLING THE FPV DRONE";
   $("launch-copy").textContent = isRecon
-    ? "Recon circles automatically. Press F to switch to your ground drone."
-    : "Climb with Space. Low, exposed flight draws enemy fire. Trees break enemy sight.";
+    ? "Recon circles automatically. Press F to launch from the sheltered forest team."
+    : "Launch from the forest team. Climb through the opening with Space. Trucks and tanks react when they spot you.";
   $("launch-hint").textContent = isRecon
     ? "No target mark required. Esc opens clickable controls."
     : "Release movement to brake. Press F to return to recon.";
@@ -455,7 +502,7 @@ function switchMode() {
     manualUntil = 0;
     manual = false;
     targets.forEach((t) => (t.seenFpv = 0));
-    toast("FPV LIVE · CLIMB OR USE TREE COVER");
+    toast("FPV LIVE · FOREST TEAM · SPACE TO TAKE OFF");
   } else {
     mode = "recon";
     position.copy(recon);
@@ -490,46 +537,52 @@ function finish(hit?: Target, reason = "collision") {
   ended = true;
   keys.clear();
   velocity.set(0, 0, 0);
-  document.exitPointerLock();
-  explode(hit ? hit.p : position);
+  explode(gameOver ? recon : hit ? hit.p : position);
   if (hit) {
     hit.alive = false;
-    hit.respawn = hit.kind === "soldier" ? Infinity : simTime + 10;
+    hit.respawn =
+      hit.kind === "soldier" || hit.kind === "pillbox"
+        ? Infinity
+        : simTime + 10;
     hit.seenRecon = 0;
     hit.seenFpv = 0;
     kills++;
     hit.group.traverse((o) => {
       if (o instanceof T.Mesh) o.material = wreckMaterial;
     });
-    hit.group.scale.y = 0.45;
+    hit.group.scale.y = hit.kind === "pillbox" ? 0.22 : 0.45;
+    hit.group.updateMatrixWorld(true);
     hit.muzzle.visible = false;
   }
   $("flash").classList.add("on");
   setTimeout(() => $("flash").classList.remove("on"), 120);
-  $("resultLabel").textContent = gameOver
-    ? "OPERATION LOST"
-    : "SORTIE " + String(sorties).padStart(2, "0") + " COMPLETE";
-  $("resultTitle").textContent = gameOver
-    ? "Recon UAV lost."
-    : hit
-      ? "Target destroyed."
-      : reason === "gunfire"
-        ? "Shot down."
-        : "Drone lost.";
-  $("resultText").textContent = gameOver
-    ? "The recon UAV was destroyed. Operation ended with " +
+  if (gameOver) {
+    document.exitPointerLock();
+    $("resultLabel").textContent = "OPERATION LOST";
+    $("resultTitle").textContent = "Recon UAV lost.";
+    $("resultText").textContent =
+      "The recon UAV was destroyed. Operation ended with " +
       kills +
-      " targets destroyed. Restart to try again."
-    : hit
-      ? hit.name +
-        " eliminated. Traffic keeps coming. Return to recon for your next target."
-      : reason === "gunfire"
-        ? "Enemy fire destroyed the FPV drone. Watch the spotting warning and break sight behind trees. A fresh drone is ready."
-        : "You hit the terrain or a tree. A fresh drone is ready. Use Space to gain height.";
-  $("continue").textContent = gameOver
-    ? "RESTART OPERATION →"
-    : "RETURN TO RECON →";
-  setTimeout(() => ($("result").hidden = false), 850);
+      " targets destroyed.";
+    $("continue").textContent = "RESTART OPERATION →";
+    $("result").hidden = false;
+    return;
+  }
+  // Automatic feed handoff keeps pointer lock and never opens the sortie menu.
+  const message = hit
+    ? hit.name + " DESTROYED"
+    : reason === "gunfire"
+      ? "FPV SHOT DOWN"
+      : "FPV LOST";
+  lastOutcome = message;
+  setTimeout(() => {
+    ended = false;
+    mode = "fpv";
+    switchMode();
+    toast(message + " · RECON FEED RESTORED");
+    if (document.hidden || !document.hasFocus() || !document.pointerLockElement)
+      pause(true);
+  }, 500);
 }
 $("start").onclick = () => {
   audioStart();
@@ -554,15 +607,7 @@ $("thermal").onclick = () => {
 $("tag").onclick = mark;
 $("launch").onclick = switchMode;
 $("continue").onclick = () => {
-  if (gameOver) {
-    location.reload();
-    return;
-  }
-  ended = false;
-  $("result").hidden = true;
-  mode = "fpv";
-  switchMode();
-  canvas.requestPointerLock();
+  if (gameOver) location.reload();
 };
 canvas.onclick = () => {
   if (started && !paused && !ended) canvas.requestPointerLock();
@@ -730,7 +775,7 @@ function gunSound() {
 }
 function shoot(t: Target, victim: "recon" | "fpv", aim: T.Vector3) {
   const from = t.p.clone();
-  from.y = t.kind === "tank" ? 3.3 : 1.5;
+  from.y = t.kind === "pillbox" ? 4 : t.kind === "tank" ? 3.3 : t.p.y + 0.5;
   const end = aim
     .clone()
     .add(
@@ -814,13 +859,33 @@ function battleStep(dt: number) {
         (leg, i) =>
           (leg.rotation.x = Math.sin(simTime * 7 + i * Math.PI) * 0.4),
       );
-    } else {
-      const tracking =
-        Math.max(t.seenFpv, t.seenRecon) > 0.25 && t.kind === "tank";
+    } else if (t.kind !== "pillbox") {
+      const cross = t.axis === "z" ? "x" : "z",
+        center = t.axis === "z" ? 0 : -55;
+      const alert = Math.max(t.seenFpv, t.seenRecon) > 0.25;
+      if (alert && simTime >= t.evadeUntil) {
+        const threat =
+          t.seenFpv >= t.seenRecon && mode === "fpv" ? position : recon;
+        const away = Math.sign(t.p[cross] - threat[cross]) || t.direction;
+        t.evadeSide = away;
+        t.evadeUntil = simTime + (t.kind === "truck" ? 2.1 : 3.1);
+      }
+      const evading = simTime < t.evadeUntil;
+      const offset = evadeOffset(
+        t.p[cross] - center,
+        t.home[cross] - center,
+        t.evadeSide,
+        evading,
+        t.kind === "truck",
+        dt,
+        t.axis === "z" ? 5 : 3.7,
+      );
+      t.dodge = offset - (t.home[cross] - center);
+      t.p[cross] = center + offset;
       const moved = trafficStep(
         t.p[t.axis],
         t.direction,
-        tracking ? 0 : t.speed,
+        t.speed * (evading ? (t.kind === "truck" ? 1.5 : 1.12) : 1),
         dt,
       );
       t.p[t.axis] = moved.next;
@@ -832,6 +897,9 @@ function battleStep(dt: number) {
           : t.direction > 0
             ? -Math.PI / 2
             : Math.PI / 2;
+      const dx = t.p.x - t.previous.x,
+        dz = t.p.z - t.previous.z;
+      if (Math.hypot(dx, dz) > 0.001) t.group.rotation.y = Math.atan2(-dx, -dz);
       if (moved.exited) {
         t.alive = false;
         t.group.visible = false;
@@ -841,15 +909,21 @@ function battleStep(dt: number) {
         continue;
       }
     }
-    t.group.position.set(t.p.x, 0, t.p.z);
+    if (t.kind === "soldier") t.p.y = groundHeight(t.p.x, t.p.z) + 1;
+    t.group.position.set(t.p.x, t.kind === "soldier" ? t.p.y - 1 : 0, t.p.z);
     t.group.updateMatrixWorld(true);
-    if (t.kind === "truck") continue;
+
     const from = t.p.clone();
-    from.y = t.kind === "tank" ? 3.3 : 1.5;
+    from.y = t.kind === "pillbox" ? 4 : t.kind === "tank" ? 3.3 : t.p.y + 0.5;
     if (scan) {
-      const seeRecon = inEnvelope(from, recon) && !blocked(from, recon);
+      const vehicle = t.kind === "tank" || t.kind === "truck";
+      const sees = (p: T.Vector3) =>
+        !vehicle || vehicleSees(from, p, t.axis, t.direction);
+      const seeRecon =
+        sees(recon) && inEnvelope(from, recon) && !blocked(from, recon);
       const seeFpv =
         mode === "fpv" &&
+        sees(position) &&
         inEnvelope(from, position) &&
         !blocked(from, position);
       t.seenRecon = awareness(t.seenRecon, seeRecon, 0.1);
@@ -866,13 +940,14 @@ function battleStep(dt: number) {
       t.gun.lookAt(aim);
     }
     if (
+      t.kind !== "truck" &&
       level >= 1 &&
       t.cooldown <= 0 &&
       inEnvelope(from, aim) &&
       !blocked(from, aim)
     ) {
       shoot(t, victim, aim);
-      t.cooldown = t.kind === "tank" ? 0.38 : 0.6;
+      t.cooldown = t.kind === "tank" || t.kind === "pillbox" ? 0.38 : 0.6;
     }
   }
   for (let i = shots.length - 1; i >= 0; i--) {
@@ -1035,6 +1110,13 @@ function frame(dt: number) {
             victim = t;
           }
         }
+      for (const box of coverBoxes) {
+        const n = boxContact(position, next, box.min, box.max);
+        if (n !== null && n < earliest) {
+          earliest = n;
+          victim = undefined;
+        }
+      }
       for (const c of treeColliders) {
         const n = contact(position, next, c.p, c.r + FLIGHT.radius);
         if (n !== null && n < earliest) {
@@ -1042,8 +1124,10 @@ function frame(dt: number) {
           victim = undefined;
         }
       }
-      if (next.y < 0.45 && velocity.y < 0) {
-        const n = (position.y - 0.45) / (position.y - next.y);
+      if (next.y < groundHeight(next.x, next.z) + 0.45 && velocity.y < 0) {
+        const n =
+          (position.y - (groundHeight(next.x, next.z) + 0.45)) /
+          (position.y - next.y);
         if (n < earliest) {
           earliest = n;
           victim = undefined;
@@ -1055,7 +1139,11 @@ function frame(dt: number) {
       } else position.copy(next);
       position.x = T.MathUtils.clamp(position.x, -235, 235);
       position.z = T.MathUtils.clamp(position.z, -235, 235);
-      position.y = T.MathUtils.clamp(position.y, 0.45, 130);
+      position.y = T.MathUtils.clamp(
+        position.y,
+        groundHeight(position.x, position.z) + 0.45,
+        130,
+      );
     }
   }
   camera.position.copy(position);
@@ -1073,7 +1161,9 @@ function frame(dt: number) {
   }
   $("cross").classList.toggle("ready", !!aimed);
   $("aim").textContent = aimed ? aimed.name + " · E TO MARK" : "";
-  $("alt").textContent = Math.round(position.y).toString();
+  $("alt").textContent = Math.round(
+    position.y - groundHeight(position.x, position.z),
+  ).toString();
   $("speed").textContent = Math.round(velocity.length()).toString();
   $("heading").textContent =
     String(Math.round(((((-yaw * 180) / Math.PI) % 360) + 360) % 360)).padStart(
@@ -1140,6 +1230,7 @@ Object.defineProperty(window, "gameState", {
     paused,
     ended,
     gameOver,
+    lastOutcome,
     thermal,
     zoom,
     kills,
@@ -1167,6 +1258,8 @@ Object.defineProperty(window, "gameState", {
       alive: t.alive,
       visible: t.group.visible,
       serial: t.serial,
+      dodge: t.dodge,
+      evading: simTime < t.evadeUntil,
       awareness: Math.max(t.seenRecon, t.seenFpv),
     })),
   }),

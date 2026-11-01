@@ -61,3 +61,30 @@ export function trafficStep(
 export function patrolAt(time: number, phase: number) {
   return Math.sin(time * 0.22 + phase) * 12;
 }
+
+export function vehicleSees(
+  from: V,
+  to: V,
+  axis: "x" | "z",
+  direction: number,
+): boolean {
+  const dx = to.x - from.x,
+    dz = to.z - from.z,
+    length = Math.hypot(dx, dz);
+  return length < 2 || ((axis === "x" ? dx : dz) * direction) / length > 0.2;
+}
+export function evadeOffset(
+  current: number,
+  base: number,
+  side: number,
+  active: boolean,
+  truck: boolean,
+  dt: number,
+  limit: number,
+) {
+  const desired = active
+    ? Math.max(-limit, Math.min(limit, base + side * (truck ? 3.5 : 2)))
+    : base;
+  const step = (truck ? 4 : 1.4) * dt;
+  return current + Math.max(-step, Math.min(step, desired - current));
+}
