@@ -1,3 +1,22 @@
+# Officer hunt QA — 2 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. All 31 tests and the production build passed; existing bundle advisory: approximately 601kB / 165kB gzip.
+- Rule tests cover identification followed by the correct officer hit, wrong soldiers, caches as optional bonuses, premature strike, timeout, terminal-state protection, legacy person-quest links, variant normalization and patrol containment across all three sectors.
+- Isolated Chromium at 1280×720: the legacy q=courier link opened Officer hunt and normalized to q=officer. The board and briefing described red shoulder panels, a dark map case and the identify/strike sequence.
+- Started the south-east variant with no marked targets. Verified the officer moved before identification. Used ordinary arrow-camera controls, 8× zoom and left-click to identify him; the HUD advanced to stage 2 and the launch card instructed an FPV strike.
+- Inspected officer-briefing.png, officer-confirmed.png and officer-thermal.png. Switched normal/thermal and back. Pause froze both mission time and the officer's position.
+- Flew an FPV into the identified moving officer using ordinary movement keys. Completed with one sortie, 4,195 points and zero destroyed caches. The camera returned automatically to unpaused recon; the completion report appeared without a sortie modal. Inspected officer-complete.png.
+- Pressing N opened a fresh unstarted officer quest board with the next variant.
+- A separate flight struck the officer without identification. The mission failed with “Officer struck before identity was confirmed,” zero points and automatic return to recon. The failure report appeared correctly.
+- Screenshot review found that the failure launch panel still said Operation complete. Corrected it to Operation failed, fixed singular drone-count wording and repeated the premature-strike flight to verify both labels.
+- Final browser console check reported zero errors/warnings. All QA scripts and screenshots are under ignored output/playwright/.
+
+## Limits
+Flight checks used read-only diagnostic coordinates to steer ordinary controls; there were no teleports, health edits or accelerated clocks. They validate the flow, not human search difficulty. The south-east sector received success/failure browser runs; all three patrols have containment tests. Cache and convoy full missions were not replayed in this officer-focused pass; their rule tests passed and earlier browser findings remain below. The officer uses a short fixed patrol and existing arcade defenses. Shoulder clues are small at recon altitude and need zoom; natural discovery difficulty, balance, other browsers and low-end hardware need player testing.
+
+---
+
 # Quest board, cache search and courier trail QA — 1 November 2026
 
 ## Verified

@@ -3,14 +3,14 @@ export const CACHES = [
   { x: 46, z: 115 },
   { x: 112, z: -125 },
 ];
-// Clear narrow walking corridors for the courier search quests.
-export const COURIER_ROUTES = CACHES.map((c) => [
+// Clear narrow walking corridors for the officer search quests.
+export const OFFICER_PATROLS = CACHES.map((c) => [
   { x: c.x + 38, z: c.z + 12 },
   { x: c.x + 20, z: c.z + 10 },
   { x: c.x + 5, z: c.z + 5 },
 ]);
-function courierCorridor(x: number, z: number) {
-  return COURIER_ROUTES.some((route) =>
+function officerCorridor(x: number, z: number) {
+  return OFFICER_PATROLS.some((route) =>
     route.slice(1).some((b, i) => {
       const a = route[i],
         dx = b.x - a.x,
@@ -47,7 +47,7 @@ export function groundHeight(x: number, z: number) {
 }
 export function reserved(x: number, z: number) {
   return (
-    courierCorridor(x, z) ||
+    officerCorridor(x, z) ||
     CACHES.some((c) => Math.hypot(x - c.x, z - c.z) < 8) ||
     HIDEOUTS.some((h) => Math.abs(x - h.x) < 10 && Math.abs(z - h.z) < 10) ||
     (Math.abs(x + 108) < 23 && Math.abs(z - 170) < 25) ||

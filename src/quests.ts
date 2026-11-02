@@ -1,6 +1,6 @@
 import { ConvoyMission } from "./mission";
-import { CACHES, COURIER_ROUTES } from "./layout";
-export type QuestKind = "convoy" | "cache" | "courier";
+import { CACHES, OFFICER_PATROLS } from "./layout";
+export type QuestKind = "convoy" | "cache" | "officer";
 export const QUESTS: {
   id: QuestKind;
   title: string;
@@ -22,20 +22,22 @@ export const QUESTS: {
       "Search a rough sector for a concealed weapons cache, then destroy it.",
   },
   {
-    id: "courier",
-    title: "Courier trail",
-    tag: "IDENTIFY + FOLLOW · 6:00",
-    summary:
-      "Identify a courier, follow his trail and destroy the stash he leads you to.",
+    id: "officer",
+    title: "Officer hunt",
+    tag: "IDENTIFY + STRIKE · 6:00",
+    summary: "Identify a fictional enemy officer, then launch an FPV strike.",
   },
 ];
 export function questKind(value: string | null): QuestKind {
-  return value === "cache" || value === "courier" ? value : "convoy";
+  // Preserve links to the person quest from the previous prototype.
+  return value === "officer" || value === "courier"
+    ? "officer"
+    : value === "cache"
+      ? "cache"
+      : "convoy";
 }
 export class QuestMission extends ConvoyMission {
   identified = false;
-  trailDistance = 0;
-  revealed = false;
   constructor(
     public kind: QuestKind = "convoy",
     variant = 0,
@@ -47,10 +49,17 @@ export class QuestMission extends ConvoyMission {
     return QUESTS.find((q) => q.id === this.kind)!.title;
   }
   get cacheId() {
-    return 10 + (this.variant % 3);
+    return 10 + this.variant;
   }
-  get courierId() {
+  get officerId() {
     return 13;
+  }
+  get objectiveId() {
+    return this.kind === "convoy"
+      ? null
+      : this.kind === "officer"
+        ? this.officerId
+        : this.cacheId;
   }
   get limit() {
     return this.kind === "convoy" ? 155 : this.kind === "cache" ? 300 : 360;
@@ -59,16 +68,7 @@ export class QuestMission extends ConvoyMission {
     return Math.max(0, this.limit - this.time);
   }
   get route() {
-    return COURIER_ROUTES[this.variant % 3];
-  }
-  get trailLength() {
-    return this.route
-      .slice(1)
-      .reduce(
-        (d, p, i) =>
-          d + Math.hypot(p.x - this.route[i].x, p.z - this.route[i].z),
-        0,
-      );
+    return OFFICER_PATROLS[this.variant];
   }
   get stage() {
     return this.over
@@ -77,16 +77,12 @@ export class QuestMission extends ConvoyMission {
         ? "intercept"
         : this.kind === "cache"
           ? "destroy"
-          : !this.identified
-            ? "identify"
-            : !this.revealed
-              ? "follow"
-              : "destroy";
+          : this.identified
+            ? "strike"
+            : "identify";
   }
   get sector() {
-    return ["WEST WOODS", "SOUTH-EAST WOODS", "NORTH-EAST WOODS"][
-      this.variant % 3
-    ];
+    return ["WEST WOODS", "SOUTH-EAST WOODS", "NORTH-EAST WOODS"][this.variant];
   }
   get briefing() {
     if (this.kind === "convoy")
@@ -98,48 +94,42 @@ export class QuestMission extends ConvoyMission {
         ". Search the amber circle for stacked crates under a green tarp, beside a fallen log. A small warm equipment box is the thermal clue. Destroy that sector's cache; other caches are optional bonuses."
       );
     return (
-      "A fictional enemy courier was last seen in the " +
+      "A fictional enemy officer is patrolling the " +
       this.sector.toLowerCase() +
-      ". Look for an orange backpack and dark hand-carried case. Left-click him to confirm identity. Keep him alive and follow him to the stash, then find and destroy the cache. Other soldiers are not the courier."
+      ". Look for red shoulder panels and a dark map case. Use normal vision and zoom to check the clues, then left-click him to confirm identity. Once confirmed, launch an FPV and destroy that officer. Other soldiers and caches do not complete this quest. Striking him before identification fails the mission."
     );
   }
   get objective() {
     if (this.kind === "convoy") return "Find and stop the convoy";
     if (this.kind === "cache") return "Find the weapons cache";
-    return this.stage === "identify"
-      ? "Identify the courier"
-      : this.stage === "follow"
-        ? "Follow the courier · keep him alive"
-        : "Find and destroy his stash";
+    return this.identified
+      ? "Launch FPV · strike the officer"
+      : "Find and identify the officer";
   }
   get searchArea() {
-    const p =
-      this.kind === "courier" && !this.revealed
-        ? this.route[0]
-        : CACHES[this.variant % 3];
-    return {
-      x: p.x + 10,
-      z: p.z - 7,
-      r: this.kind === "courier" && this.revealed ? 22 : 48,
-    };
+    const p = this.kind === "officer" ? this.route[0] : CACHES[this.variant];
+    return { x: p.x + 10, z: p.z - 7, r: 48 };
   }
-  courierPosition() {
-    let left = this.trailDistance;
-    for (let i = 1; i < this.route.length; i++) {
-      const a = this.route[i - 1],
-        b = this.route[i],
-        length = Math.hypot(b.x - a.x, b.z - a.z);
-      if (left <= length) {
-        const u = left / length;
-        return { x: a.x + (b.x - a.x) * u, z: a.z + (b.z - a.z) * u };
-      }
-      left -= length;
-    }
-    return this.route[this.route.length - 1];
+  officerPosition() {
+    const a = this.route[0],
+      b = this.route[1],
+      length = Math.hypot(b.x - a.x, b.z - a.z);
+    const leg = ((this.time * 1.15) / length) % 2,
+      u = leg <= 1 ? leg : 2 - leg;
+    return { x: a.x + (b.x - a.x) * u, z: a.z + (b.z - a.z) * u };
   }
   identify(id: number) {
-    if (!this.over && this.kind === "courier" && id === this.courierId)
+    if (!this.over && this.kind === "officer" && id === this.officerId)
       this.identified = true;
+  }
+  destroyOfficer(id: number) {
+    if (this.over || this.kind !== "officer" || id !== this.officerId) return;
+    if (!this.identified) {
+      this.fail("Officer struck before identity was confirmed");
+      return;
+    }
+    this.phase = "success";
+    this.reason = "Identified officer destroyed";
   }
   override arrival(index: number) {
     return this.kind === "convoy" ? super.arrival(index) : Infinity;
@@ -151,35 +141,15 @@ export class QuestMission extends ConvoyMission {
     }
     if (this.over) return;
     this.time += dt;
-    if (this.time >= this.limit) {
-      this.fail("Time expired");
-      return;
-    }
-    if (this.kind === "courier" && this.identified && !this.revealed) {
-      this.trailDistance = Math.min(
-        this.trailLength,
-        this.trailDistance + dt * 1.6,
-      );
-      if (this.trailDistance >= this.trailLength) this.revealed = true;
-    }
+    if (this.time >= this.limit) this.fail("Time expired");
   }
   override destroyCache(id: number) {
     if (this.over) return;
     super.destroyCache(id);
-    if (this.kind === "convoy" || id !== this.cacheId) return;
-    if (this.kind === "courier" && !this.revealed) {
-      this.fail("Stash destroyed before the courier trail was confirmed");
-      return;
+    if (this.kind === "cache" && id === this.cacheId) {
+      this.phase = "success";
+      this.reason = "Weapons cache destroyed";
     }
-    this.phase = "success";
-    this.reason =
-      this.kind === "cache"
-        ? "Weapons cache destroyed"
-        : "Courier trail confirmed and stash destroyed";
-  }
-  courierLost() {
-    if (this.kind === "courier" && !this.revealed)
-      this.fail("Courier lost before he revealed the stash");
   }
   override enter(index: number) {
     if (this.kind === "convoy") super.enter(index);

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { QuestMission, questKind } from "../src/quests.ts";
 import { reserved } from "../src/layout.ts";
+
 test("cache quest ignores convoy arrivals and requires the selected stash", () => {
   const m = new QuestMission("cache", 1);
   assert.equal(m.arrival(0), Infinity);
@@ -19,58 +20,73 @@ test("cache quest ignores convoy arrivals and requires the selected stash", () =
   assert.equal(m.score(2), points);
   assert.equal(m.cachesDestroyed, 2);
 });
-test("courier quest requires identification, a completed trail and the correct cache", () => {
-  const m = new QuestMission("courier");
+test("officer quest requires identification and a hit on that officer", () => {
+  const m = new QuestMission("officer");
+  assert.equal(m.objectiveId, 13);
   m.identify(4);
+  m.destroyOfficer(4);
   m.tick(10);
   assert.equal(m.stage, "identify");
-  assert.equal(m.trailDistance, 0);
   m.identify(13);
-  assert.equal(m.stage, "follow");
-  m.tick(1);
-  assert.ok(m.trailDistance > 0);
-  assert.equal(m.revealed, false);
-  m.tick(m.trailLength / 1.6);
-  assert.equal(m.stage, "destroy");
-  assert.deepEqual(m.courierPosition(), m.route[m.route.length - 1]);
-  m.destroyCache(11);
+  assert.equal(m.stage, "strike");
   assert.equal(m.over, false);
-  m.courierLost();
+  m.destroyOfficer(7);
   assert.equal(m.over, false);
-  m.destroyCache(10);
+  m.destroyOfficer(13);
   assert.equal(m.phase, "success");
+  const score = m.score(1),
+    position = m.officerPosition();
+  m.destroyOfficer(13);
+  m.tick(100);
+  assert.equal(m.score(1), score);
+  assert.deepEqual(m.officerPosition(), position);
 });
-test("lost courier, premature destruction and timeout cannot become late successes", () => {
-  for (const cause of ["courier", "cache", "timeout"]) {
-    const m = new QuestMission("courier");
-    if (cause === "courier") m.courierLost();
-    else if (cause === "cache") m.destroyCache(10);
+test("caches are optional bonuses and never replace the officer objective", () => {
+  const m = new QuestMission("officer");
+  m.destroyCache(m.cacheId);
+  assert.equal(m.phase, "intercept");
+  assert.equal(m.identified, false);
+  assert.equal(m.score(1), 750);
+  m.identify(13);
+  m.destroyCache(11);
+  assert.equal(m.stage, "strike");
+  m.destroyOfficer(13);
+  assert.equal(m.phase, "success");
+  assert.equal(m.cachesDestroyed, 2);
+});
+test("premature officer strike and timeout cannot become late successes", () => {
+  for (const cause of ["strike", "timeout"]) {
+    const m = new QuestMission("officer");
+    if (cause === "strike") m.destroyOfficer(13);
     else m.tick(360);
+    assert.equal(m.phase, "failure");
     m.identify(13);
-    m.tick(100);
+    m.destroyOfficer(13);
     m.destroyCache(10);
     assert.equal(m.phase, "failure");
     assert.equal(m.identified, false);
+    assert.equal(m.cachesDestroyed, 0);
   }
-  const m = new QuestMission("cache");
-  m.tick(300);
-  assert.equal(m.phase, "failure");
+  const cache = new QuestMission("cache");
+  cache.tick(300);
+  assert.equal(cache.phase, "failure");
 });
-test("quest variants have contained search targets and reserved courier paths", () => {
+test("officer patrols move before identification and stay in reserved search areas", () => {
   for (let v = 0; v < 3; v++) {
-    const m = new QuestMission("courier", v);
-    const a = m.searchArea,
-      start = m.route[0];
-    assert.ok(Math.hypot(a.x - start.x, a.z - start.z) < a.r);
-    m.identify(13);
-    for (let i = 0; i < 100; i++) {
+    const m = new QuestMission("officer", v),
+      area = m.searchArea,
+      start = m.officerPosition();
+    m.tick(3);
+    assert.notDeepEqual(m.officerPosition(), start);
+    for (let i = 0; i < 600; i++) {
       m.tick(0.4);
-      const p = m.courierPosition();
+      const p = m.officerPosition();
       assert.ok(reserved(p.x, p.z));
+      assert.ok(Math.hypot(p.x - area.x, p.z - area.z) < area.r);
     }
+    assert.equal(m.identified, false);
     assert.equal(m.cacheId, 10 + v);
   }
-  assert.equal(questKind("invalid"), "convoy");
 });
 test("convoy quest keeps original completion and escape rules", () => {
   const m = new QuestMission("convoy");
@@ -86,10 +102,12 @@ test("convoy quest keeps original completion and escape rules", () => {
   failure.escape(0);
   assert.equal(failure.phase, "failure");
 });
-
-test("quest variants normalize malformed and out-of-range URL values", () => {
+test("quest URLs normalize legacy person links and malformed variants", () => {
+  assert.equal(questKind("courier"), "officer");
+  assert.equal(questKind("officer"), "officer");
+  assert.equal(questKind("invalid"), "convoy");
   for (const value of [NaN, Infinity, -Infinity, -4, 8.8]) {
-    const m = new QuestMission("courier", value);
+    const m = new QuestMission("officer", value);
     assert.ok(m.variant >= 0 && m.variant < 3);
     assert.ok(m.route.length > 1);
     assert.ok(Number.isFinite(m.searchArea.x));

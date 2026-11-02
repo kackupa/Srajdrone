@@ -19,15 +19,15 @@ Choose one of three independent operations before clicking Begin operation:
 | --- | --- | --- |
 | Convoy intercept | Find and stop all three convoy vehicles before one escapes. | 2:35 |
 | Hidden arsenal | Search the approximate amber sector and destroy its designated weapons cache. | 5:00 |
-| Courier trail | Identify the courier, keep him alive as he walks to the stash, then destroy that cache. | 6:00 |
+| Officer hunt | Identify a fictional enemy officer, then destroy him with an FPV. | 6:00 |
 
-The courier's visual clues are an orange backpack and dark hand-carried case. Left-clicking the correct person starts his route; marking other soldiers does not advance the quest. His arrival shrinks the search sector, but never automatically tags the cache. Destroying the courier before he arrives, or destroying his stash before confirming the trail, fails that quest. The trail continues after identification even if the camera looks away; this prototype does not require continuous visual contact.
+The officer patrols an approximate search sector without an automatic target marker. Look for red shoulder panels and a dark map case using normal vision and zoom, then left-click to confirm his identity. Press F to launch an FPV and strike the confirmed officer. He keeps moving after identification. Other soldiers and weapons caches do not complete this quest; caches remain optional bonuses. Striking the officer before identifying him fails the mission. Both success and failure automatically return you to recon.
 
 Cache search briefs describe stacked crates beneath a green tarp, a fallen log and a small warm equipment box. Only the designated sector's cache completes the quest; other caches are optional bonuses. Marking distinguishes primary and secondary caches. Search quests have no convoy arrivals or escape objective. Local infantry and fortifications still defend themselves.
 
 Each search quest awards 750 points per destroyed cache, plus 2,000 on completion, five per remaining second (rounded up) and 100 for each drone below six used. Scores are per run; there is no saved quest progression or unlock economy.
 
-After success/failure, N or Quest board opens a fresh board with the next of three encounter variants. Pause offers Restart quest or Abandon / Quest board. Each new run resets the mission. The three cache/courier variants use west, south-east and north-east woodland sectors. Courier walking corridors are reserved from random trees and brush.
+After success/failure, N or Quest board opens a fresh board with the next of three encounter variants. Pause offers Restart quest or Abandon / Quest board. Each new run resets the mission. The three cache/officer variants use west, south-east and north-east woodland sectors. Officer patrol corridors are reserved from random trees and brush.
 
 ## Convoy Intercept
 Stop all three convoy vehicles before any escapes the forest road. A 12-second preparation countdown precedes staggered arrivals. The operation lasts at most 2:35, including preparation. The expected convoy route and entry/exit appear on the map as briefing information. Vehicles arrive unmarked: their positions and world tags stay hidden until you aim at a visible target and left-click. Arrival reports do not tag vehicles, and simply looking at a vehicle does not tag it. Concealed caches also stay off the map until marked.

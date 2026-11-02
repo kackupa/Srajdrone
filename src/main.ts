@@ -30,7 +30,7 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small"><span id="operation-name">MISSION BOARD</span> / PROTOTYPE 11</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small"><span id="operation-name">MISSION BOARD</span> / PROTOTYPE 12</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
 <div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">STOP ALL 3 CONVOY VEHICLES</div><div id="mission-clock"></div><div id="convoy-progress"></div><div id="cache-progress" class="small">HIDDEN CACHES · 0 / 3</div></div>
 <div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">QUEST BOARD · N</button></div><div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
@@ -38,7 +38,7 @@ $("app").innerHTML = `
 <div id="battery" class="battery" hidden><div class="battery-heading"><span>FPV BATTERY</span><span id="battery-percent">100%</span></div><strong id="battery-time">01:00</strong><div class="battery-track"><div id="battery-fill"></div></div><div id="battery-status">FLIGHT TIME REMAINING</div><div class="feed-timer">● REC <span id="flight-time">00:00</span></div></div><div id="feed-loss" class="feed-loss" hidden><span>FPV POWER LOST<br>RESTORING RECON FEED</span></div><div class="toast" id="toast"></div><div id="pointer">CLICK THE VIEW TO CAPTURE MOUSE · ESC TO RELEASE / PAUSE</div>
 <div class="bottom"><div><div class="actions"><button id="tag">LEFT CLICK · MARK</button><button id="thermal"><kbd>T</kbd>THERMAL</button><button id="pause">PAUSE</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>SECTOR / BIRCH</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ ENEMY &nbsp; <span style="color:#8ce8ff">⊕ OUR BASE</span></div></div></div></div>
 <div class="flash" id="flash"></div>
-<div class="modal" id="intro"><div class="panel quest-panel"><div class="eyebrow">OPERATIONS / FOREST SECTOR</div><h1>Choose your quest.</h1><p class="board-intro">Search from recon. Pick your moment. Return to the mission board after each operation.</p><div class="quest-grid"><button class="quest-card" id="quest-convoy" aria-pressed="false"><span class="quest-number">01</span><strong>Convoy intercept</strong><span>Find and stop a moving column.</span><small>INTERCEPT · 2:35</small></button><button class="quest-card" id="quest-cache" aria-pressed="false"><span class="quest-number">02</span><strong>Hidden arsenal</strong><span>Find a concealed weapons cache.</span><small>SEARCH + STRIKE · 5:00</small></button><button class="quest-card" id="quest-courier" aria-pressed="false"><span class="quest-number">03</span><strong>Courier trail</strong><span>Identify a courier. Follow him to a stash.</span><small>IDENTIFY + FOLLOW · 6:00</small></button></div><div class="quest-briefing"><div class="eyebrow" id="quest-sector"></div><h2 id="quest-title"></h2><p id="quest-brief"></p><div class="small">MOUSE / ARROWS LOOK · SCROLL ZOOM · T THERMAL · LEFT CLICK IDENTIFY / MARK · F LAUNCH FPV</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>NO AUTOMATIC TARGET MARKERS · 60s FPV BATTERY · FICTIONAL MISSIONS</footer></div></div>
+<div class="modal" id="intro"><div class="panel quest-panel"><div class="eyebrow">OPERATIONS / FOREST SECTOR</div><h1>Choose your quest.</h1><p class="board-intro">Search from recon. Pick your moment. Return to the mission board after each operation.</p><div class="quest-grid"><button class="quest-card" id="quest-convoy" aria-pressed="false"><span class="quest-number">01</span><strong>Convoy intercept</strong><span>Find and stop a moving column.</span><small>INTERCEPT · 2:35</small></button><button class="quest-card" id="quest-cache" aria-pressed="false"><span class="quest-number">02</span><strong>Hidden arsenal</strong><span>Find a concealed weapons cache.</span><small>SEARCH + STRIKE · 5:00</small></button><button class="quest-card" id="quest-officer" aria-pressed="false"><span class="quest-number">03</span><strong>Officer hunt</strong><span>Identify an officer, then launch an FPV strike.</span><small>IDENTIFY + STRIKE · 6:00</small></button></div><div class="quest-briefing"><div class="eyebrow" id="quest-sector"></div><h2 id="quest-title"></h2><p id="quest-brief"></p><div class="small">MOUSE / ARROWS LOOK · SCROLL ZOOM · T THERMAL · LEFT CLICK IDENTIFY / MARK · F LAUNCH FPV</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>NO AUTOMATIC TARGET MARKERS · 60s FPV BATTERY · FICTIONAL MISSIONS</footer></div></div>
 <div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>Recon flight is locked to its high orbit. Mouse or arrows aim the camera; scroll zooms and T toggles thermal. Left-click marks the target under the heart. WASD flies the FPV; Space climbs and C/Ctrl descends. Shift boosts and drains battery faster. Each FPV starts with 60 seconds; pause stops the countdown. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button><button id="motion">FLIGHT MOTION: ON · V</button><button id="retry">RESTART QUEST</button><button id="quest-board">ABANDON / QUEST BOARD</button></div></div>
 <div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">OPERATION LOST</div><h1 id="resultTitle">Recon UAV lost.</h1><p id="resultText"></p><button class="primary" id="continue">RESTART OPERATION →</button></div></div>`;
 const canvas = $("view") as HTMLCanvasElement;
@@ -417,17 +417,19 @@ target("PATROL 08", 65, -105, "soldier");
 target("PATROL 09", -40, -64, "soldier");
 PILLBOXES.forEach((p, i) => target("PILLBOX " + (i + 1), p.x, p.z, "pillbox"));
 CACHES.forEach((p, i) => target("AMMO CACHE " + (i + 1), p.x, p.z, "cache"));
-// A fictional courier is a separate actor, never pre-marked.
+// A fictional officer is a separate actor, never pre-marked.
 target(
   "UNIDENTIFIED SOLDIER",
   mission.route[0].x,
   mission.route[0].z,
   "soldier",
 );
-const courier = targets[12];
-box(0.65, 0.65, 0.38, mat(0xb87532, true), 0, 1.4, 0.35, courier.group);
-box(0.24, 0.48, 0.55, mat(0x252e28), 0.62, 0.85, 0, courier.group);
-courier.group.traverse((o) => {
+const officer = targets[12];
+const officerInsignia = mat(0xa83e38, true);
+for (const side of [-1, 1])
+  box(0.25, 0.12, 0.48, officerInsignia, side * 0.32, 1.65, 0, officer.group);
+box(0.24, 0.48, 0.55, mat(0x252e28), 0.62, 0.85, 0, officer.group);
+officer.group.traverse((o) => {
   if (o instanceof T.Mesh) o.userData.originalMaterial = o.material;
 });
 
@@ -592,13 +594,10 @@ function updateMode() {
   $("launch-hint").textContent = isRecon
     ? "No target mark required. Esc opens clickable controls."
     : "Release movement to brake. Press F to return to recon.";
-  if (isRecon && mission.kind === "courier") {
-    $("launch-copy").textContent =
-      mission.stage === "identify"
-        ? "Find the orange backpack and dark case. Left-click the courier to confirm identity."
-        : mission.stage === "follow"
-          ? "Follow the courier from recon. Keep him alive until he reaches the stash."
-          : "The courier reached the stash. Search the smaller amber sector and destroy its cache.";
+  if (isRecon && mission.kind === "officer") {
+    $("launch-copy").textContent = mission.identified
+      ? "Officer confirmed. Press F to launch an FPV and strike the marked officer."
+      : "Find red shoulder panels and a dark map case. Left-click the officer to confirm identity before attacking.";
   }
   $("pauseLaunch").hidden = !isRecon;
   $("mode").textContent =
@@ -650,24 +649,18 @@ function mark() {
   if (aimed) {
     aimed.marked = true;
     mission.identify(aimed.id);
-    if (mission.kind === "courier" && aimed.id === mission.courierId) {
-      aimed.name = "COURIER · IDENTIFIED";
-      toast(
-        mission.revealed
-          ? "COURIER TRAIL CONFIRMED · DESTROY THE STASH"
-          : "COURIER CONFIRMED · KEEP HIM ALIVE · FOLLOW TO THE STASH",
-      );
-      $("launch-copy").textContent = mission.revealed
-        ? "The courier has reached the stash. Search the smaller amber sector and destroy its cache."
-        : "Courier identified. Follow him from recon; wait until he reaches the stash before attacking.";
+    if (mission.kind === "officer" && aimed.id === mission.officerId) {
+      aimed.name = "OFFICER · CONFIRMED";
+      toast("OFFICER CONFIRMED · LAUNCH FPV · STRIKE THE MARKED TARGET");
+      if (mode === "recon")
+        $("launch-copy").textContent =
+          "Identity confirmed. Press F to launch your FPV and strike this officer.";
       return;
     }
     if (mission.kind !== "convoy" && aimed.kind === "cache") {
-      const primary = aimed.id === mission.cacheId;
+      const primary = mission.kind === "cache" && aimed.id === mission.cacheId;
       const message = primary
-        ? mission.kind === "courier" && !mission.revealed
-          ? "STASH FOUND · WAIT FOR THE COURIER TO ARRIVE"
-          : "PRIMARY CACHE CONFIRMED · DESTROY THIS TARGET"
+        ? "PRIMARY CACHE CONFIRMED · DESTROY THIS TARGET"
         : "SECONDARY CACHE · OPTIONAL BONUS TARGET";
       toast(message);
       if (mode === "recon") $("launch-copy").textContent = message;
@@ -710,7 +703,7 @@ function finish(hit?: Target, reason = "collision") {
     hit.respawn = Infinity;
     if (hit.id <= CONVOY.count) mission.destroy(hit.id - 1);
     if (hit.kind === "cache") mission.destroyCache(hit.id);
-    if (hit.id === mission.courierId) mission.courierLost();
+    mission.destroyOfficer(hit.id);
     hit.seenRecon = 0;
     hit.seenFpv = 0;
     kills++;
@@ -797,8 +790,8 @@ $("start").onclick = () => {
     mission.kind === "convoy"
       ? "SEARCH WITH CAMERA · LEFT CLICK TO MARK · F TO LAUNCH"
       : "SEARCH THE AMBER SECTOR · " +
-          (mission.kind === "courier"
-            ? "ORANGE BACKPACK + DARK CASE"
+          (mission.kind === "officer"
+            ? "RED SHOULDERS + DARK MAP CASE"
             : "CRATES UNDER A GREEN TARP"),
   );
 };
@@ -1121,26 +1114,18 @@ function battleStep(dt: number) {
       t.group.updateMatrixWorld(true);
       continue;
     }
-    if (t.id === mission.courierId) {
-      if (mission.kind !== "courier") continue;
-      const at = mission.courierPosition(),
+    if (t.id === mission.officerId) {
+      if (mission.kind !== "officer") continue;
+      const at = mission.officerPosition(),
         dx = at.x - t.p.x,
         dz = at.z - t.p.z;
       t.p.x = at.x;
       t.p.z = at.z;
       if (Math.hypot(dx, dz) > 0.001) t.group.rotation.y = Math.atan2(-dx, -dz);
-      t.reaction =
-        mission.stage === "follow"
-          ? "ON THE MOVE"
-          : mission.revealed
-            ? "AT THE STASH"
-            : "WAITING";
+      t.reaction = "PATROLLING";
       t.legs.forEach(
         (leg, i) =>
-          (leg.rotation.x =
-            mission.stage === "follow"
-              ? Math.sin(simTime * 7 + i * Math.PI) * 0.4
-              : 0),
+          (leg.rotation.x = Math.sin(simTime * 7 + i * Math.PI) * 0.35),
       );
     } else if (t.kind === "soldier") {
       const alert = Math.max(t.seenFpv, t.seenRecon) > 0.25;
@@ -1316,12 +1301,7 @@ function frame(dt: number) {
   elapsed += dt;
   if (started && !paused && !ended) {
     simTime += dt;
-    const revealed = mission.revealed;
     mission.tick(dt);
-    if (!revealed && mission.revealed) {
-      if (mode === "recon") updateMode();
-      toast("COURIER STOPPED · SEARCH HIS SUPPLY SITE · DESTROY THE CACHE");
-    }
   }
   effects.update(started && !paused ? dt : 0);
   if (windVolume && audio)
@@ -1584,11 +1564,9 @@ function frame(dt: number) {
           .join(" · ")
       : mission.kind === "cache"
         ? "SEARCH → FIND THE CRATES → DESTROY"
-        : mission.stage === "identify"
-          ? "1 / 3 · ORANGE BACKPACK + DARK CASE"
-          : mission.stage === "follow"
-            ? "2 / 3 · FOLLOW · DO NOT ATTACK COURIER"
-            : "3 / 3 · FIND AND DESTROY THE STASH";
+        : mission.identified
+          ? "2 / 2 · STRIKE THE CONFIRMED OFFICER"
+          : "1 / 2 · RED SHOULDERS + DARK MAP CASE";
   if (mission.over && !gameOver && !ended && !missionReported) {
     if (mode === "fpv") finish(undefined, "mission");
     else {
@@ -1603,11 +1581,12 @@ function frame(dt: number) {
         mission.score(sorties) +
         " points · " +
         sorties +
-        " drones used.";
+        (sorties === 1 ? " drone used." : " drones used.");
       $("objective").textContent =
         mission.phase === "success" ? "Quest complete." : mission.reason + ".";
       $("launch-hint").textContent = "Press N for the quest board.";
-      $("launch-title").textContent = "OPERATION COMPLETE";
+      $("launch-title").textContent =
+        mission.phase === "success" ? "OPERATION COMPLETE" : "OPERATION FAILED";
       $("launch-copy").textContent =
         "Review the sector from recon. Press N to choose another quest.";
       ($("launch") as HTMLButtonElement).disabled = true;
@@ -1716,14 +1695,14 @@ function configureQuest(kind: QuestKind) {
     t.respawn = mission.arrival(i);
   }
   const start = mission.route[0];
-  courier.alive = kind === "courier";
-  courier.group.visible = courier.alive;
-  courier.respawn = Infinity;
-  courier.p.set(start.x, groundHeight(start.x, start.z) + 1, start.z);
-  courier.previous.copy(courier.p);
-  courier.home.copy(courier.p);
-  courier.group.position.set(start.x, groundHeight(start.x, start.z), start.z);
-  courier.name = "UNIDENTIFIED SOLDIER";
+  officer.alive = kind === "officer";
+  officer.group.visible = officer.alive;
+  officer.respawn = Infinity;
+  officer.p.set(start.x, groundHeight(start.x, start.z) + 1, start.z);
+  officer.previous.copy(officer.p);
+  officer.home.copy(officer.p);
+  officer.group.position.set(start.x, groundHeight(start.x, start.z), start.z);
+  officer.name = "UNIDENTIFIED SOLDIER";
   for (const q of QUESTS)
     $("quest-" + q.id).setAttribute("aria-pressed", String(q.id === kind));
   $("quest-title").textContent = mission.title;
@@ -1759,10 +1738,9 @@ Object.defineProperty(window, "gameState", {
     mission: {
       kind: mission.kind,
       stage: mission.stage,
-      objectiveId: mission.kind === "convoy" ? null : mission.cacheId,
-      courierId: mission.courierId,
+      objectiveId: mission.objectiveId,
+      officerId: mission.officerId,
       identified: mission.identified,
-      revealed: mission.revealed,
       searchArea: mission.searchArea,
       phase: mission.phase,
       time: mission.time,
