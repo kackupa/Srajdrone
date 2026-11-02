@@ -10,21 +10,21 @@ export const QUESTS: {
   {
     id: "convoy",
     title: "Convoy intercept",
-    tag: "INTERCEPT · 2:35",
+    tag: "2:35",
     summary:
       "Find and stop three moving vehicles before they leave the forest.",
   },
   {
     id: "cache",
     title: "Hidden arsenal",
-    tag: "SEARCH + STRIKE · 5:00",
+    tag: "5:00",
     summary:
       "Search a rough sector for a concealed weapons cache, then destroy it.",
   },
   {
     id: "officer",
     title: "Officer hunt",
-    tag: "IDENTIFY + STRIKE · 6:00",
+    tag: "6:00",
     summary: "Identify a fictional enemy officer, then launch an FPV strike.",
   },
 ];
@@ -86,25 +86,15 @@ export class QuestMission extends ConvoyMission {
   }
   get briefing() {
     if (this.kind === "convoy")
-      return "Three vehicles are approaching the main road. Find and stop all three before any escapes. A 12-second warning gives you time to search. Vehicles stay unmarked until you left-click them.";
+      return "Stop all three vehicles before any escape.";
     if (this.kind === "cache")
-      return (
-        "A weapons stash is reported in the " +
-        this.sector.toLowerCase() +
-        ". Search the amber circle for stacked crates under a green tarp, beside a fallen log. A small warm equipment box is the thermal clue. Destroy that sector's cache; other caches are optional bonuses."
-      );
-    return (
-      "A fictional enemy officer is patrolling the " +
-      this.sector.toLowerCase() +
-      ". Look for red shoulder panels and a dark map case. Use normal vision and zoom to check the clues, then left-click him to confirm identity. Once confirmed, launch an FPV and destroy that officer. Other soldiers and caches do not complete this quest. Striking him before identification fails the mission."
-    );
+      return "Search the amber area. Crates under a green tarp; a warm equipment box. Destroy the cache.";
+    return "Red shoulders, dark map case. Left-click to identify, then strike. Attacking before identification fails.";
   }
   get objective() {
-    if (this.kind === "convoy") return "Find and stop the convoy";
-    if (this.kind === "cache") return "Find the weapons cache";
-    return this.identified
-      ? "Launch FPV · strike the officer"
-      : "Find and identify the officer";
+    if (this.kind === "convoy") return "Stop the convoy";
+    if (this.kind === "cache") return "Find the cache";
+    return this.identified ? "Strike the officer" : "Identify the officer";
   }
   get searchArea() {
     const p = this.kind === "officer" ? this.route[0] : CACHES[this.variant];

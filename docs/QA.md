@@ -1,3 +1,19 @@
+# Minimal UI QA — 2 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities; 31 tests and the production build passed.
+- Removed decorative quest/mode numbering, prototype/uplink copy, repeated launch guidance, duplicate objective/result panels and persistent score/sortie/cache counters. Mission cards show a name and time; the selected brief retains essential clues and failure rules. Scores remain in the result.
+- Isolated Chromium at 1280×720: selected Officer hunt, started with no marks, aimed with arrows/zoom and left-clicked to identify. The short objective changed to Strike the officer. Normal/thermal toggles and pause/resume worked; pause froze the patrol and timer.
+- Physically flew an FPV into the officer. One sortie, 4,195 points, automatic unpaused recon return. The result replaced the mission block and launch control; N opened the next mission board. No teleporting, health edits or clock acceleration.
+- Inspected minimal-briefing.png, minimal-recon.png, minimal-fpv.png, minimal-pause.png and minimal-complete.png.
+- At 800×600, selected convoy/cache cards and checked their briefings, started the cache mission, opened Pause, launched through its button, climbed above 12m, toggled thermal, returned to recon and used Missions to reopen the board. Pause controls fit within the viewport; inspected minimal-board-small.png, minimal-fpv-small.png and minimal-pause-small.png.
+- Final browser console: zero errors/warnings. Artifacts are ignored under output/playwright/.
+
+## Limits
+This pass changes presentation, not mission rules or flight behavior. Full officer success was replayed; convoy/cache completion and failure paths were not repeated. Flight steering used read-only diagnostic coordinates, so natural search difficulty remains unmeasured. Touch/mobile play, other browsers and low-end hardware remain untested.
+
+---
+
 # Officer hunt QA — 2 November 2026
 
 ## Verified

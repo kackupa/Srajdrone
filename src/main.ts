@@ -30,17 +30,17 @@ import { buildBattlefield } from "./world";
 const $ = (id: string) => document.getElementById(id)!;
 $("app").innerHTML = `
 <canvas id="view"></canvas><div class="hud">
-<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div><div class="small"><span id="operation-name">MISSION BOARD</span> / PROTOTYPE 12</div></div><div class="top-right small"><span class="live"></span>UPLINK ACTIVE<br><span id="sensor">EO · NORMAL VISION</span><br><span id="sorties">SORTIE 00</span></div></div>
+<div class="top"><div><div class="brand">SRAJ<span>DRONE</span></div></div><div class="top-right small"><span id="mode">Recon</span> · <span id="sensor">Normal</span></div></div>
 <div class="compass">W · · N · · E<strong id="heading">000°</strong></div>
-<div class="mission"><div class="small" id="mode">01 / RECONNAISSANCE</div><h2 id="objective">Find. Mark. Launch.</h2><div class="small" id="score">STOP ALL 3 CONVOY VEHICLES</div><div id="mission-clock"></div><div id="convoy-progress"></div><div id="cache-progress" class="small">HIDDEN CACHES · 0 / 3</div></div>
-<div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">QUEST BOARD · N</button></div><div class="launch-card"><div class="eyebrow" id="launch-title">FPV DRONE READY</div><p id="launch-copy">Recon circles automatically. Press F to switch to your ground drone.</p><button id="launch" class="primary"><kbd>F</kbd> LAUNCH FPV DRONE →</button><div class="launch-hint" id="launch-hint">Press Esc for clickable controls.</div></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
-<div class="battle-status"><div id="autopilot">RECON AUTOPILOT · HIGH ORBIT</div><div id="health">RECON 100% · FPV READY</div><div id="threat">HIGH ORBIT · SCANNING</div></div><div class="damage-vignette" id="damage"></div><div id="cross" class="cross" aria-label="Heart aiming reticle"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 33 C16 29 4 21 4 13 C4 4 15 3 20 11 C25 3 36 4 36 13 C36 21 24 29 20 33 Z"/><circle cx="20" cy="20" r="1.3"/></svg></div><div id="aim" class="aim-label"></div><div id="markers"></div><div id="friendly-markers"></div><div class="home-reference" id="home-reference"><span id="home-arrow" aria-hidden="true">↑</span><div><strong>OUR TEAM / BASE</strong><div id="home-distance">FRIENDLY POSITION</div></div></div>
-<div id="battery" class="battery" hidden><div class="battery-heading"><span>FPV BATTERY</span><span id="battery-percent">100%</span></div><strong id="battery-time">01:00</strong><div class="battery-track"><div id="battery-fill"></div></div><div id="battery-status">FLIGHT TIME REMAINING</div><div class="feed-timer">● REC <span id="flight-time">00:00</span></div></div><div id="feed-loss" class="feed-loss" hidden><span>FPV POWER LOST<br>RESTORING RECON FEED</span></div><div class="toast" id="toast"></div><div id="pointer">CLICK THE VIEW TO CAPTURE MOUSE · ESC TO RELEASE / PAUSE</div>
-<div class="bottom"><div><div class="actions"><button id="tag">LEFT CLICK · MARK</button><button id="thermal"><kbd>T</kbd>THERMAL</button><button id="pause">PAUSE</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>SECTOR / BIRCH</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ ENEMY &nbsp; <span style="color:#8ce8ff">⊕ OUR BASE</span></div></div></div></div>
+<div class="mission"><h2 id="objective"></h2><div id="mission-clock"></div><div id="convoy-progress"></div></div>
+<div id="mission-report" class="mission-report" hidden><strong id="mission-result"></strong><p id="mission-detail"></p><button id="next-mission">Missions · N</button></div><div class="launch-card" id="launch-card"><button id="launch" class="primary"><kbd>F</kbd> Launch FPV</button></div><div class="telemetry">ALTITUDE<strong><span id="alt">160</span><small> m</small></strong>SPEED<strong><span id="speed">0</span><small> m/s</small></strong><span id="zoom">OPTICAL 1.0×</span></div>
+<div class="battle-status"><div id="health"></div><div id="threat"></div></div><div class="damage-vignette" id="damage"></div><div id="cross" class="cross" aria-label="Heart aiming reticle"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 33 C16 29 4 21 4 13 C4 4 15 3 20 11 C25 3 36 4 36 13 C36 21 24 29 20 33 Z"/><circle cx="20" cy="20" r="1.3"/></svg></div><div id="aim" class="aim-label"></div><div id="markers"></div><div id="friendly-markers"></div><div class="home-reference" id="home-reference"><span id="home-arrow" aria-hidden="true">↑</span><div><strong>BASE</strong><div id="home-distance">FRIENDLY POSITION</div></div></div>
+<div id="battery" class="battery" hidden><div class="battery-heading"><span>Battery</span><span id="battery-percent">100%</span></div><strong id="battery-time">01:00</strong><div class="battery-track"><div id="battery-fill"></div></div><div id="battery-status"></div></div><div id="feed-loss" class="feed-loss" hidden><span>Battery empty</span></div><div class="toast" id="toast"></div><div id="pointer">Click to look · Esc to pause</div>
+<div class="bottom"><div><div class="actions"><button id="tag">Mark</button><button id="thermal"><kbd>T</kbd>Thermal</button><button id="pause"><kbd>Esc</kbd> Pause</button></div><div class="help" id="help"></div></div><div class="map-wrap"><div class="map-head"><span>Map</span><span>N ↑</span></div><canvas id="map" width="356" height="356"></canvas><div class="small" style="font-size:8px">△ YOU &nbsp; ◇ ENEMY &nbsp; <span style="color:#8ce8ff">⊕ BASE</span></div></div></div></div>
 <div class="flash" id="flash"></div>
-<div class="modal" id="intro"><div class="panel quest-panel"><div class="eyebrow">OPERATIONS / FOREST SECTOR</div><h1>Choose your quest.</h1><p class="board-intro">Search from recon. Pick your moment. Return to the mission board after each operation.</p><div class="quest-grid"><button class="quest-card" id="quest-convoy" aria-pressed="false"><span class="quest-number">01</span><strong>Convoy intercept</strong><span>Find and stop a moving column.</span><small>INTERCEPT · 2:35</small></button><button class="quest-card" id="quest-cache" aria-pressed="false"><span class="quest-number">02</span><strong>Hidden arsenal</strong><span>Find a concealed weapons cache.</span><small>SEARCH + STRIKE · 5:00</small></button><button class="quest-card" id="quest-officer" aria-pressed="false"><span class="quest-number">03</span><strong>Officer hunt</strong><span>Identify an officer, then launch an FPV strike.</span><small>IDENTIFY + STRIKE · 6:00</small></button></div><div class="quest-briefing"><div class="eyebrow" id="quest-sector"></div><h2 id="quest-title"></h2><p id="quest-brief"></p><div class="small">MOUSE / ARROWS LOOK · SCROLL ZOOM · T THERMAL · LEFT CLICK IDENTIFY / MARK · F LAUNCH FPV</div></div><button class="primary" id="start">BEGIN OPERATION →</button><footer>NO AUTOMATIC TARGET MARKERS · 60s FPV BATTERY · FICTIONAL MISSIONS</footer></div></div>
-<div class="modal" id="pauseModal" hidden><div class="panel"><div class="eyebrow">OPERATION PAUSED</div><h1>Take a breath.</h1><p>Recon flight is locked to its high orbit. Mouse or arrows aim the camera; scroll zooms and T toggles thermal. Left-click marks the target under the heart. WASD flies the FPV; Space climbs and C/Ctrl descends. Shift boosts and drains battery faster. Each FPV starts with 60 seconds; pause stops the countdown. Release movement to brake. Arrow keys also aim. Scroll to zoom.</p><button class="primary" id="pauseLaunch">LAUNCH FPV DRONE →</button><button id="resume">RESUME OPERATION</button><button id="motion">FLIGHT MOTION: ON · V</button><button id="retry">RESTART QUEST</button><button id="quest-board">ABANDON / QUEST BOARD</button></div></div>
-<div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">OPERATION LOST</div><h1 id="resultTitle">Recon UAV lost.</h1><p id="resultText"></p><button class="primary" id="continue">RESTART OPERATION →</button></div></div>`;
+<div class="modal" id="intro"><div class="panel quest-panel"><h1>Missions</h1><div class="quest-grid">${QUESTS.map((q) => '<button class="quest-card" id="quest-' + q.id + '" aria-pressed="false"><strong>' + q.title + "</strong><small>" + q.tag + "</small></button>").join("")}</div><div class="quest-briefing"><div class="eyebrow" id="quest-sector"></div><p id="quest-brief"></p></div><button class="primary" id="start">Start</button></div></div>
+<div class="modal" id="pauseModal" hidden><div class="panel"><h1>Paused</h1><dl class="controls"><dt>Look / zoom</dt><dd>Mouse or arrows / scroll</dd><dt>Mark</dt><dd>Left click</dd><dt>Thermal</dt><dd>T</dd><dt>Launch / recon</dt><dd>F</dd><dt>Fly</dt><dd>WASD</dd><dt>Up / down</dt><dd>Space / C or Ctrl</dd><dt>Boost</dt><dd>Shift</dd><dt>Mute</dt><dd>M</dd></dl><button class="primary" id="pauseLaunch">Launch FPV</button><button id="resume">Resume</button><button id="motion"></button><button id="retry">Restart</button><button id="quest-board">Missions</button></div></div>
+<div class="modal" id="result" hidden><div class="panel"><div class="eyebrow" id="resultLabel">OPERATION LOST</div><h1 id="resultTitle">Recon UAV lost.</h1><p id="resultText"></p><button class="primary" id="continue">Restart</button></div></div>`;
 const canvas = $("view") as HTMLCanvasElement;
 const renderer = new T.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -579,41 +579,18 @@ function sensor() {
     thermal ? "#151d24" : "#a5b7b1",
     thermal ? 0.0025 : 0.0018,
   );
-  $("sensor").textContent = thermal ? "IR · WHITE HOT" : "EO · NORMAL VISION";
-  $("thermal").innerHTML = "<kbd>T</kbd>" + (thermal ? "NORMAL" : "THERMAL");
+  $("sensor").textContent = thermal ? "Thermal" : "Normal";
+  $("thermal").innerHTML = "<kbd>T</kbd>" + (thermal ? "Normal" : "Thermal");
 }
 function updateMode() {
   const isRecon = mode === "recon";
   $("battery").hidden = isRecon;
-  $("launch-title").textContent = isRecon
-    ? "FPV DRONE READY"
-    : "YOU ARE CONTROLLING THE FPV DRONE";
-  $("launch-copy").textContent = isRecon
-    ? "Recon flight is locked high. Search with mouse, zoom and thermal; left-click a visible target to mark it."
-    : "Space to take off. Battery runs from launch. Boost drains it 1.8× faster. Heart centre dot is your aim point.";
-  $("launch-hint").textContent = isRecon
-    ? "No target mark required. Esc opens clickable controls."
-    : "Release movement to brake. Press F to return to recon.";
-  if (isRecon && mission.kind === "officer") {
-    $("launch-copy").textContent = mission.identified
-      ? "Officer confirmed. Press F to launch an FPV and strike the marked officer."
-      : "Find red shoulder panels and a dark map case. Left-click the officer to confirm identity before attacking.";
-  }
   $("pauseLaunch").hidden = !isRecon;
-  $("mode").textContent =
-    mode === "recon" ? "01 / RECONNAISSANCE" : "02 / FPV STRIKE";
-  $("objective").textContent =
-    mode === "recon"
-      ? "Left-click to mark · F to launch"
-      : "Fly into a target. Make it count.";
-  $("launch").innerHTML =
-    "<kbd>F</kbd>" +
-    (mode === "recon" ? " LAUNCH FPV DRONE →" : " RETURN TO RECON");
-  $("help").innerHTML =
-    (isRecon
-      ? "<kbd>RECON</kbd> HIGH ORBIT · CAMERA CONTROL ONLY"
-      : "<kbd>W A S D</kbd> FLY &nbsp; <kbd>SPACE / C</kbd> UP / DOWN &nbsp; <kbd>SHIFT</kbd> BOOST") +
-    "<br><kbd>LEFT CLICK</kbd> MARK &nbsp; <kbd>MOUSE / ARROWS</kbd> LOOK &nbsp; <kbd>SCROLL</kbd> ZOOM &nbsp; <kbd>T</kbd> THERMAL &nbsp; <kbd>M</kbd> MUTE &nbsp; <kbd>V</kbd> MOTION";
+  $("mode").textContent = isRecon ? "Recon" : "FPV";
+  $("launch").innerHTML = "<kbd>F</kbd>" + (isRecon ? " Launch FPV" : " Recon");
+  $("help").innerHTML = isRecon
+    ? "Mouse / arrows look · Scroll zoom · Left click mark"
+    : "WASD fly · Space / C up / down · Shift boost";
 }
 function switchMode() {
   if (!started || paused || ended || (mission.over && mode === "recon")) return;
@@ -632,7 +609,7 @@ function switchMode() {
     boosting = false;
     sorties++;
     targets.forEach((t) => (t.seenFpv = 0));
-    toast("FPV LIVE · FOREST TEAM · SPACE TO TAKE OFF");
+    toast("Space to take off");
   } else {
     mode = "recon";
     position.copy(recon);
@@ -651,36 +628,17 @@ function mark() {
     mission.identify(aimed.id);
     if (mission.kind === "officer" && aimed.id === mission.officerId) {
       aimed.name = "OFFICER · CONFIRMED";
-      toast("OFFICER CONFIRMED · LAUNCH FPV · STRIKE THE MARKED TARGET");
-      if (mode === "recon")
-        $("launch-copy").textContent =
-          "Identity confirmed. Press F to launch your FPV and strike this officer.";
+      toast("Officer identified");
       return;
     }
     if (mission.kind !== "convoy" && aimed.kind === "cache") {
       const primary = mission.kind === "cache" && aimed.id === mission.cacheId;
-      const message = primary
-        ? "PRIMARY CACHE CONFIRMED · DESTROY THIS TARGET"
-        : "SECONDARY CACHE · OPTIONAL BONUS TARGET";
+      const message = primary ? "Target cache marked" : "Bonus cache marked";
       toast(message);
-      if (mode === "recon") $("launch-copy").textContent = message;
       return;
     }
-    toast(
-      aimed.name +
-        (mode === "recon"
-          ? " MARKED · PRESS F TO LAUNCH FPV"
-          : " MARKED ON MAP"),
-    );
-    if (mode === "recon")
-      $("launch-copy").textContent =
-        aimed.name + " marked. Press F now to launch your FPV drone.";
-  } else
-    toast(
-      aimedFriendly
-        ? "FRIENDLY TEAM · THIS IS OUR POSITION"
-        : "Aim directly at a visible target to mark",
-    );
+    toast("Target marked");
+  } else toast(aimedFriendly ? "Friendly" : "No target");
 }
 function pause(value: boolean) {
   if (!started || ended) return;
@@ -733,7 +691,7 @@ function finish(hit?: Target, reason = "collision") {
       "The recon UAV was destroyed. Operation ended with " +
       kills +
       " targets destroyed.";
-    $("continue").textContent = "RESTART OPERATION →";
+    $("continue").textContent = "Restart";
     $("result").hidden = false;
     return;
   }
@@ -743,7 +701,7 @@ function finish(hit?: Target, reason = "collision") {
     : reason === "mission"
       ? "QUEST ENDED"
       : reason === "battery"
-        ? "FPV BATTERY DEPLETED"
+        ? "Battery empty"
         : reason === "gunfire"
           ? "FPV SHOT DOWN"
           : "FPV LOST";
@@ -758,7 +716,7 @@ function finish(hit?: Target, reason = "collision") {
       yaw = Math.atan2(-gaze.x, -gaze.z);
       pitch = Math.atan2(gaze.y, Math.hypot(gaze.x, gaze.z));
     }
-    toast(message + " · RECON FEED RESTORED");
+    toast(message);
     if (document.hidden || !document.hasFocus() || !document.pointerLockElement)
       pause(true);
   }, 500);
@@ -771,10 +729,10 @@ function nextMission() {
 function toggleMotion() {
   reducedMotion = !reducedMotion;
   $("motion").textContent =
-    "FLIGHT MOTION: " + (reducedMotion ? "REDUCED" : "ON") + " · V";
+    "Motion: " + (reducedMotion ? "reduced" : "on") + " · V";
 }
 $("motion").textContent =
-  "FLIGHT MOTION: " + (reducedMotion ? "REDUCED" : "ON") + " · V";
+  "Motion: " + (reducedMotion ? "reduced" : "on") + " · V";
 $("motion").onclick = toggleMotion;
 $("retry").onclick = () => location.reload();
 $("next-mission").onclick = nextMission;
@@ -786,14 +744,6 @@ $("start").onclick = () => {
   $("intro").hidden = true;
   updateMode();
   canvas.requestPointerLock();
-  toast(
-    mission.kind === "convoy"
-      ? "SEARCH WITH CAMERA · LEFT CLICK TO MARK · F TO LAUNCH"
-      : "SEARCH THE AMBER SECTOR · " +
-          (mission.kind === "officer"
-            ? "RED SHOULDERS + DARK MAP CASE"
-            : "CRATES UNDER A GREEN TARP"),
-  );
 };
 $("pauseLaunch").onclick = () => {
   pause(false);
@@ -1096,7 +1046,7 @@ function battleStep(dt: number) {
         t.serial++;
         if (t.id <= CONVOY.count) {
           mission.enter(t.id - 1);
-          toast("CONVOY REPORTED · SEARCH THE ROAD · LEFT CLICK TO MARK");
+          toast("Convoy approaching");
         }
         t.p[t.axis] = -t.direction * 248;
         t.previous.copy(t.p);
@@ -1401,14 +1351,14 @@ function frame(dt: number) {
       batterySeconds = drainBattery(batterySeconds, dt, boosting);
       flightSeconds += dt;
       if (previousBattery > BATTERY.low && batterySeconds <= BATTERY.low) {
-        toast("LOW BATTERY · 15s AT NORMAL POWER");
+        toast("Battery low · 15s");
         batteryBeep(false);
       }
       if (
         previousBattery > BATTERY.critical &&
         batterySeconds <= BATTERY.critical
       ) {
-        toast("BATTERY CRITICAL · 7s AT NORMAL POWER");
+        toast("Battery critical · 7s");
         batteryBeep(true);
       }
       if (batterySeconds === 0) finish(undefined, "battery");
@@ -1505,9 +1455,9 @@ function frame(dt: number) {
   $("cross").classList.toggle("ready", !!aimed);
   $("cross").classList.toggle("friendly", !!aimedFriendly);
   $("aim").textContent = aimed
-    ? aimed.name + " · " + aimed.reaction + " · LEFT CLICK TO MARK"
+    ? aimed.name + (aimed.marked ? "" : " · Click to mark")
     : aimedFriendly
-      ? "OUR TEAM · FRIENDLY"
+      ? "Friendly"
       : "";
   $("alt").textContent = Math.round(
     position.y - groundHeight(position.x, position.z),
@@ -1518,7 +1468,7 @@ function frame(dt: number) {
       3,
       "0",
     ) + "°";
-  $("zoom").textContent = "OPTICAL " + zoom.toFixed(1) + "×";
+  $("zoom").textContent = zoom.toFixed(1) + "×";
   $("battery").dataset.level = batteryLevel(batterySeconds);
   $("battery-percent").textContent =
     Math.ceil((batterySeconds / BATTERY.capacity) * 100) + "%";
@@ -1527,46 +1477,25 @@ function frame(dt: number) {
     (batterySeconds / BATTERY.capacity) * 100 + "%";
   $("battery-status").textContent =
     batterySeconds <= BATTERY.critical
-      ? "CRITICAL · POWER RUNNING OUT"
+      ? "Critical"
       : batterySeconds <= BATTERY.low
-        ? "LOW BATTERY" + (boosting ? " · BOOST 1.8× DRAIN" : "")
+        ? "Low battery"
         : boosting
-          ? "BOOST · 1.8× DRAIN"
-          : "FLIGHT TIME REMAINING";
-  $("flight-time").textContent = clockText(Math.floor(flightSeconds));
-  $("sorties").textContent = "SORTIE " + String(sorties).padStart(2, "0");
-  $("operation-name").textContent = mission.title.toUpperCase();
+          ? "Boost"
+          : "";
   if (!mission.over) $("objective").textContent = mission.objective;
-  $("score").textContent =
-    (mission.kind === "convoy"
-      ? mission.destroyed + " / 3 CONVOY STOPPED"
-      : mission.sector) +
-    " · " +
-    mission.score(sorties) +
-    " POINTS";
   $("mission-clock").textContent =
     mission.kind === "convoy" && mission.phase === "approach"
-      ? "CONVOY ARRIVES IN " + clockText(CONVOY.warning - mission.time)
-      : mission.over
-        ? mission.phase === "success"
-          ? "QUEST COMPLETE"
-          : "QUEST FAILED"
-        : "OPERATION " + clockText(mission.remaining);
-  $("cache-progress").textContent =
-    "CACHES DESTROYED · " +
-    mission.cachesDestroyed +
-    (mission.kind === "convoy" ? " / " + CACHES.length : "");
-  $("convoy-progress").hidden = mission.over;
+      ? "Arrives in " + clockText(CONVOY.warning - mission.time)
+      : clockText(mission.remaining);
   $("convoy-progress").textContent =
     mission.kind === "convoy"
-      ? mission.vehicles
-          .map((state, i) => i + 1 + " " + state.toUpperCase())
-          .join(" · ")
-      : mission.kind === "cache"
-        ? "SEARCH → FIND THE CRATES → DESTROY"
-        : mission.identified
-          ? "2 / 2 · STRIKE THE CONFIRMED OFFICER"
-          : "1 / 2 · RED SHOULDERS + DARK MAP CASE";
+      ? mission.destroyed + " / 3 stopped"
+      : mission.kind === "officer" && !mission.identified
+        ? "Red shoulders · dark map case"
+        : mission.kind === "cache"
+          ? "Green tarp · warm equipment box"
+          : "";
   if (mission.over && !gameOver && !ended && !missionReported) {
     if (mode === "fpv") finish(undefined, "mission");
     else {
@@ -1574,7 +1503,7 @@ function frame(dt: number) {
       clearFpvShots();
       $("mission-report").hidden = false;
       $("mission-result").textContent =
-        mission.phase === "success" ? "QUEST COMPLETE" : "QUEST FAILED";
+        mission.phase === "success" ? "Complete" : "Failed";
       $("mission-detail").textContent =
         mission.reason +
         ". " +
@@ -1582,28 +1511,13 @@ function frame(dt: number) {
         " points · " +
         sorties +
         (sorties === 1 ? " drone used." : " drones used.");
-      $("objective").textContent =
-        mission.phase === "success" ? "Quest complete." : mission.reason + ".";
-      $("launch-hint").textContent = "Press N for the quest board.";
-      $("launch-title").textContent =
-        mission.phase === "success" ? "OPERATION COMPLETE" : "OPERATION FAILED";
-      $("launch-copy").textContent =
-        "Review the sector from recon. Press N to choose another quest.";
-      ($("launch") as HTMLButtonElement).disabled = true;
+      document.querySelector<HTMLElement>(".mission")!.hidden = true;
+      $("launch-card").hidden = true;
       $("pauseLaunch").hidden = true;
     }
   }
-  $("autopilot").textContent = "RECON · LOCKED HIGH ORBIT";
-  $("health").textContent =
-    "RECON " +
-    reconHealth +
-    "%" +
-    (mode === "fpv" ? " · FPV " + fpvHealth + "%" : " · FPV READY");
-  $("threat").textContent = threatCount
-    ? "ENEMY TRACKING · BREAK LINE OF SIGHT"
-    : position.y < BATTLE.enemyCeiling
-      ? "LOW FLIGHT · WATCH FOR ENEMY FIRE"
-      : "HIGH ALTITUDE · OUTSIDE ENEMY FIRE";
+  $("health").textContent = mode === "fpv" ? "Hull " + fpvHealth + "%" : "";
+  $("threat").textContent = threatCount ? "Spotted" : "";
   $("threat").classList.toggle("danger", threatCount > 0);
   $("damage").classList.toggle("hit", simTime < damageUntil);
   let html = "";
@@ -1636,8 +1550,8 @@ function frame(dt: number) {
     "deg)";
   $("home-distance").textContent =
     Math.hypot(homeDelta.x, homeDelta.z) < 15 && position.y < 15
-      ? "AT FRIENDLY LAUNCH SITE"
-      : Math.round(homeDelta.length()) + "m · DIRECTION TO HOME";
+      ? "Launch site"
+      : Math.round(homeDelta.length()) + "m";
   let friendlyHtml = "";
   const inView = (p: T.Vector3) => {
     const x = ((p.x + 1) * innerWidth) / 2,
@@ -1659,7 +1573,7 @@ function frame(dt: number) {
       (baseScreen.x + 1) * 50 +
       "%;top:" +
       (-baseScreen.y + 1) * 50 +
-      '%"><b>⊕</b> OUR TEAM / BASE</div>';
+      '%"><b>⊕</b> BASE</div>';
   for (const f of battlefield.friendlies) {
     const p = f.position.clone().project(camera);
     if (inView(p))
@@ -1705,11 +1619,8 @@ function configureQuest(kind: QuestKind) {
   officer.name = "UNIDENTIFIED SOLDIER";
   for (const q of QUESTS)
     $("quest-" + q.id).setAttribute("aria-pressed", String(q.id === kind));
-  $("quest-title").textContent = mission.title;
   $("quest-sector").textContent =
-    kind === "convoy"
-      ? "MAIN ROAD · MOVING TARGETS"
-      : mission.sector + " · APPROXIMATE SEARCH AREA";
+    kind === "convoy" ? "Main road" : mission.sector;
   $("quest-brief").textContent = mission.briefing;
   const url = new URL(location.href);
   url.searchParams.set("q", kind);

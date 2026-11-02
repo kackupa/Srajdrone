@@ -10,10 +10,10 @@ npm run dev -- --port 5178
 npm test
 npm run build
 ```
-Open http://127.0.0.1:5178, choose a quest and click Begin operation.
+Open http://127.0.0.1:5178, choose a quest and click Start.
 
 ## Quest board
-Choose one of three independent operations before clicking Begin operation:
+Choose one of three independent operations before clicking Start:
 
 | Quest | Objective | Time |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ Cache search briefs describe stacked crates beneath a green tarp, a fallen log a
 
 Each search quest awards 750 points per destroyed cache, plus 2,000 on completion, five per remaining second (rounded up) and 100 for each drone below six used. Scores are per run; there is no saved quest progression or unlock economy.
 
-After success/failure, N or Quest board opens a fresh board with the next of three encounter variants. Pause offers Restart quest or Abandon / Quest board. Each new run resets the mission. The three cache/officer variants use west, south-east and north-east woodland sectors. Officer patrol corridors are reserved from random trees and brush.
+After success/failure, N or Quest board opens a fresh board with the next of three encounter variants. Pause offers Restart or Missions. Each new run resets the mission. The three cache/officer variants use west, south-east and north-east woodland sectors. Officer patrol corridors are reserved from random trees and brush.
 
 ## Convoy Intercept
 Stop all three convoy vehicles before any escapes the forest road. A 12-second preparation countdown precedes staggered arrivals. The operation lasts at most 2:35, including preparation. The expected convoy route and entry/exit appear on the map as briefing information. Vehicles arrive unmarked: their positions and world tags stay hidden until you aim at a visible target and left-click. Arrival reports do not tag vehicles, and simply looking at a vehicle does not tag it. Concealed caches also stay off the map until marked.
@@ -47,11 +47,11 @@ FPV acceleration and braking remain responsive. The camera has a wider base view
 
 Each FPV starts with 60 seconds of normal-power battery. Moving with Shift held drains 1.8× faster. Low/critical warnings appear at 15/7 seconds of normal-power capacity. Pause stops the battery and mission clock. Depletion briefly cuts the feed and restores recon. Recon has no battery countdown.
 
-The heart reticle's centre dot is the exact aim point. Normal and simulated thermal views support zoom. Vehicle crews need an unobstructed forward view of a nearby low drone to react; trucks evade faster than tanks. Soldiers move along their local defensive paths when alerted, crouch at their destination, then return to patrol after the threat clears. Aim labels report enemy reactions.
+The heart reticle's centre dot is the exact aim point. Normal and simulated thermal views support zoom. Vehicle crews need an unobstructed forward view of a nearby low drone to react; trucks evade faster than tanks. Soldiers move along their local defensive paths when alerted, crouch at their destination, then return to patrol after the threat clears. Aim labels identify the target and offer marking.
 
 Hits produce target-dependent bursts with fire, fragments, a dust ring and smoke. Vehicle/fortification wrecks emit smoke for 40 seconds and flames briefly. Ammo caches have larger bursts and leave flames and smoke burning for three minutes of active time, including the recon review after the mission. Pausing freezes the fire. Cosmetic effects never block aiming or collision rays and have a 240-particle cap. Original synthesized explosions include a low-frequency impact.
 
-Our own team is identified in cyan in both sensors: squad chevrons, launch-pad paint and a labelled BASE ring on the minimap. Friendly soldiers show warm bodies in thermal. A permanent OUR TEAM / BASE card gives distance and camera-relative direction even when the camp is off-screen. Friendly world labels avoid HUD panels. Aiming at a friendly turns the heart cyan; clicking identifies the friendly instead of adding an enemy mark. These known-location markers are game aids and can show through cover.
+Our own team is identified in cyan in both sensors: squad chevrons, launch-pad paint and a labelled BASE ring on the minimap. Friendly soldiers show warm bodies in thermal. A permanent BASE card gives distance and camera-relative direction even when the camp is off-screen. Friendly world labels avoid HUD panels. Aiming at a friendly turns the heart cyan; clicking identifies the friendly instead of adding an enemy mark. These known-location markers are game aids and can show through cover.
 
 ## Models and scenery
 The convoy now uses original T-72-family and Ural-4320-inspired vehicle models. The tank has a low rounded turret, exterior armour tiles, six main road wheels per track, segmented treads, rear stowage and a detailed barrel. The transport has a long bonnet, vertical grille, round headlights, six treaded tyres, intake, mirrors and a squared fabric canopy. Both use smooth shading, painted camouflage, wear and fabric textures; wheels rotate with travel. Small static details are batched by material to keep draw calls bounded.
@@ -59,6 +59,9 @@ The convoy now uses original T-72-family and Ural-4320-inspired vehicle models. 
 Paint/fabric maps are temporarily suppressed in thermal so camouflage does not hide the warm vehicle signature, and restored in normal vision. Existing target marking, collision spheres, damage and automatic recon handoff remain. These are visual interpretations with fictional faction names, not exact replicas or real equipment simulations. Infantry and friendly operators retain helmets, vests, pouches, packs, boots and cyan friendly identification.
 
 The forest still uses the preceding stylized mixed conifer/broadleaf trees, procedural ground/road textures, dirt shoulders and soft directional shadows. This pass improves vehicle realism; it does not make the entire scene photorealistic. All meshes/textures are authored locally in code with no downloaded model/texture assets. See docs/VISUAL_REFERENCES.md for appearance references.
+
+## Interface
+The mission menu shows three names, time limits and one short briefing. Flight uses a compact objective, timer, launch/recon button, telemetry, battery and map. Clues remain beside the objective; danger warnings appear only when spotted. Full controls are in Pause. Scores and drone counts appear in the result.
 
 ## Controls
 - WASD: FPV forward, backward and strafe only. Recon flight cannot be overridden.
@@ -68,7 +71,7 @@ The forest still uses the preceding stylized mixed conifer/broadleaf trees, proc
 - F: launch FPV / manually switch to recon. E no longer marks.
 - T: normal / thermal. Wheel: zoom.
 - Escape: pause and clickable controls. M: mute. V: reduce flight motion.
-- N: open the quest board after mission completion. Pause also offers Abandon / Quest board.
+- N: open the quest board after mission completion. Pause also offers Missions.
 
 ## Prototype boundaries
 TypeScript + Three.js + Vite; original procedural assets, no backend or saves. Original map, not extracted Google Maps data. Timber, earth, trees and concrete block sight/fire; camouflage netting is decorative. Dense shrubs, low foliage and four open-centred thickets provide new hiding spaces. Brush breaks enemy sightlines but is soft to fly through; already-fired bullets can pass through it. Logs and earth banks are solid obstacles that stop fire and collide with FPVs.
