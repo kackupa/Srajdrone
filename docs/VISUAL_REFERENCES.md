@@ -29,3 +29,7 @@ These are presentation proposals, not verified features of the inaccessible X vi
 - Photo search also supplied front/three-quarter images of the [T-72B](https://themilitarydatabase.com/equipment/99) and [Ural-4320](https://truck-auto.info/ural/208-4320.html).
 
 These are appearance references only. All mesh geometry and camouflage/fabric/wear textures are authored in code in this repository; none of the photographs were downloaded or included as assets. Models are recognizable interpretations, not exact replicas or technical simulations. Armour tiles, exterior cylinders and other details are cosmetic; no new real-world performance or vulnerability model was added. Faction names remain fictional.
+
+
+## User-supplied forest footage — 3 November 2026
+The supplied MP4 and still image informed the visual direction: thin tree silhouettes, dense uneven foliage, dry ground cover, weathered camouflage netting, muted sky and a softened low-resolution camera feed. Only appearance was used. No footage, frames, watermarks, logos or real-world operational details are included in the game. Branch atlases, grass geometry, bark, ground, road and sky textures are original procedural work. The FPV feed treatment is a readability-conscious game effect, not a calibrated simulation of a real camera.

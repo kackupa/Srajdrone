@@ -1,6 +1,8 @@
 import * as T from "three";
 import { createModels } from "./models";
-import { surfaceTexture, pineCrown, leafCrown } from "./surfaces";
+import { surfaceTexture, pineCrown, leafCrown, skyTexture } from "./surfaces";
+import { foliageMaterial, branchCards, barkTexture } from "./foliage";
+import { DroneFeed } from "./feed";
 import { FLIGHT, steer, contact, movingContact, boxContact } from "./flight";
 import "./style.css";
 import { buildUnderstory } from "./understory";
@@ -48,9 +50,11 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = T.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T.PCFSoftShadowMap;
+const feed = new DroneFeed();
 const scene = new T.Scene();
-scene.background = new T.Color("#a5b7b1");
-scene.fog = new T.FogExp2("#a5b7b1", 0.0018);
+const normalSky = skyTexture();
+scene.background = normalSky;
+scene.fog = new T.FogExp2("#b1bfc0", 0.0018);
 const camera = new T.PerspectiveCamera(
   65,
   innerWidth / innerHeight,
@@ -58,8 +62,8 @@ const camera = new T.PerspectiveCamera(
   1100,
 );
 camera.rotation.order = "YXZ";
-scene.add(new T.HemisphereLight(0xdbe9ff, 0x5b6041, 1.7));
-const sun = new T.DirectionalLight(0xffe4b4, 2.6);
+scene.add(new T.HemisphereLight(0xe2e9ed, 0x5b5947, 1.25));
+const sun = new T.DirectionalLight(0xffefd8, 2.4);
 sun.position.set(-120, 220, 100);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -87,8 +91,8 @@ function mat(color: number, hot = false) {
 const models = createModels(mat);
 const road = mat(0xffffff),
   dirt = mat(0x8b8870),
-  trunk = mat(0x514a38),
-  leafs = [mat(0x344f3e), mat(0x455d40), mat(0x576e47)],
+  trunk = mat(0xb2aaa0),
+  leafs = [mat(0xc1c6ae), mat(0xe0dec2), mat(0xa4b39b)],
   armor = mat(0x665f43, true),
   dark = mat(0x262d28, true);
 road.map = surfaceTexture("road");
@@ -99,7 +103,11 @@ const shoulder = mat(0x655b45);
 shoulder.polygonOffset = true;
 shoulder.polygonOffsetFactor = -1;
 shoulder.polygonOffsetUnits = -1;
-const birch = mat(0xa2aa96);
+const birch = mat(0xe2e0d5);
+trunk.map = barkTexture();
+birch.map = barkTexture(true);
+trunk.userData.sensorMap = trunk.map;
+birch.userData.sensorMap = birch.map;
 function mesh(
   g: T.BufferGeometry,
   m: T.Material,
@@ -142,7 +150,7 @@ box(600, 0.03, 15, shoulder, 0, 0.015, -55);
 box(14, 0.1, 600, road, 0, 0.05, 0);
 box(600, 0.11, 10, road, 0, 0.06, -55);
 
-for (let z = -220; z < 230; z += 15) box(0.3, 0.13, 5, dirt, 0, 0.08, z);
+// Unmarked forest roads; no pristine centre stripes.
 let seed = 7351;
 const random = () => {
   seed = (1664525 * seed + 1013904223) >>> 0;
@@ -190,8 +198,33 @@ instances(new T.CylinderGeometry(1, 1, 1, 5), trunk, trunks);
 instances(new T.CylinderGeometry(0.7, 1, 1, 6), birch, birchTrunks);
 const pineGeometry = pineCrown(),
   broadGeometry = leafCrown();
-crowns.forEach((c, i) => instances(pineGeometry, leafs[i], c));
-broadCrowns.forEach((c, i) => instances(broadGeometry, leafs[(i + 1) % 3], c));
+// Preserve the established coarse cover envelopes, independent of alpha cards.
+const coverMaterial = new T.MeshBasicMaterial({ visible: false });
+function foliageInstances(
+  shape: T.BufferGeometry,
+  rows: T.Matrix4[][],
+  broad: boolean,
+) {
+  rows.forEach((list, i) => {
+    const proxy = new T.InstancedMesh(shape, coverMaterial, list.length);
+    list.forEach((matrix, j) => proxy.setMatrixAt(j, matrix));
+    scene.add(proxy);
+    sightBlockers.push(proxy);
+    const material = broad ? mat([0xc5c6aa, 0xd1c6a1, 0xa5b79a][i]) : leafs[i];
+    const visible = new T.InstancedMesh(
+      branchCards(broad),
+      foliageMaterial(material, broad ? "leaf" : "pine"),
+      list.length,
+    );
+    list.forEach((matrix, j) => visible.setMatrixAt(j, matrix));
+    visible.castShadow = true;
+    visible.receiveShadow = true;
+    visible.raycast = () => {};
+    scene.add(visible);
+  });
+}
+foliageInstances(pineGeometry, crowns, false);
+foliageInstances(broadGeometry, broadCrowns, true);
 for (let i = 0; i < 55; i++) {
   const x = (random() - 0.5) * 450,
     z = (random() - 0.5) * 450;
@@ -574,9 +607,9 @@ function sensor() {
       m.needsUpdate = true;
     }
   });
-  scene.background = new T.Color(thermal ? "#151d24" : "#a5b7b1");
+  scene.background = thermal ? new T.Color("#151d24") : normalSky;
   scene.fog = new T.FogExp2(
-    thermal ? "#151d24" : "#a5b7b1",
+    thermal ? "#151d24" : "#b1bfc0",
     thermal ? 0.0025 : 0.0018,
   );
   $("sensor").textContent = thermal ? "Thermal" : "Normal";
@@ -1588,7 +1621,15 @@ function frame(dt: number) {
   }
   $("friendly-markers").innerHTML = friendlyHtml;
   mapDraw();
-  renderer.render(scene, camera);
+  feed.render(
+    renderer,
+    scene,
+    camera,
+    mode === "fpv",
+    thermal,
+    elapsed,
+    reducedMotion,
+  );
 }
 updateMode();
 let last = performance.now();

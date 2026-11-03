@@ -1,10 +1,11 @@
 import * as T from "three";
+import { foliageMaterial, branchCards, grassBlades } from "./foliage";
 import { CACHES, HIDEOUTS, reserved } from "./layout";
 type MaterialFactory = (color: number, hot?: boolean) => T.MeshStandardMaterial;
 export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
   const vision: T.Object3D[] = [],
     solids: T.Mesh[] = [];
-  const colors = [mat(0x384c2d), mat(0x4c6137), mat(0x687341)],
+  const colors = [mat(0xb2b79a), mat(0xc8c39e), mat(0xa3b394)],
     wood = mat(0x443c2c),
     soil = mat(0x5c6543);
   const rows: T.Matrix4[][] = [[], [], []],
@@ -84,19 +85,47 @@ export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
   for (let i = 0; i < 3; i++) {
     const bush = new T.InstancedMesh(
       new T.IcosahedronGeometry(1, 1),
-      colors[i],
+      new T.MeshBasicMaterial({ visible: false }),
       rows[i].length,
     );
     rows[i].forEach((matrix, j) => bush.setMatrixAt(j, matrix));
     scene.add(bush);
+    // Existing cover volumes remain authoritative; the visible thicket is leafy.
+
     vision.push(bush);
+    const leaves = new T.InstancedMesh(
+      branchCards(true),
+      foliageMaterial(colors[i], "leaf"),
+      rows[i].length,
+    );
+    rows[i].forEach((matrix, j) => leaves.setMatrixAt(j, matrix));
+    leaves.castShadow = true;
+    leaves.receiveShadow = true;
+    leaves.raycast = () => {};
+    scene.add(leaves);
   }
+  // Dense small tufts and larger dry weeds. Reserve launch, roads and quest paths.
+  for (let i = 0; i < 14000; i++) {
+    const x = (rand() - 0.5) * 470,
+      z = (rand() - 0.5) * 470;
+    if (Math.abs(x) < 10 || Math.abs(z + 55) < 8 || reserved(x, z)) continue;
+    const h = 0.35 + rand() * 1.05;
+    dummy.position.set(x, h * 0.5, z);
+    dummy.rotation.set(0, rand() * Math.PI, 0);
+    dummy.scale.set(0.7 + rand() * 1.4, h, 0.7 + rand() * 1.4);
+    dummy.updateMatrix();
+    grass.push(dummy.matrix.clone());
+  }
+  const grassMaterial = mat(0xe2d7b6);
+  grassMaterial.vertexColors = true;
+  grassMaterial.side = T.DoubleSide;
   const blades = new T.InstancedMesh(
-    new T.ConeGeometry(1, 1, 3),
-    colors[1],
+    grassBlades(),
+    grassMaterial,
     grass.length,
   );
   grass.forEach((matrix, i) => blades.setMatrixAt(i, matrix));
+  blades.receiveShadow = true;
   blades.raycast = () => {};
   scene.add(blades);
   return { vision, solids };

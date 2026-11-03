@@ -8,12 +8,12 @@ export function surfaceTexture(kind: "ground" | "road") {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
-  c.fillStyle = kind === "ground" ? "#687252" : "#626761";
+  c.fillStyle = kind === "ground" ? "#77765b" : "#696a61";
   c.fillRect(0, 0, 512, 512);
   for (let i = 0; i < 1800; i++) {
     c.fillStyle =
       kind === "ground"
-        ? ["#7c805c35", "#3d513c30", "#9a8c6430", "#4d604538"][i % 4]
+        ? ["#aaa17a65", "#4d514050", "#8e785665", "#62674a50"][i % 4]
         : ["#a2a39918", "#303d3220", "#737c7020"][i % 3];
     c.beginPath();
     c.ellipse(
@@ -30,6 +30,35 @@ export function surfaceTexture(kind: "ground" | "road") {
   for (let i = 0; i < 18000; i++) {
     c.fillStyle = i % 2 ? "#ffffff12" : "#18271d20";
     c.fillRect(rnd() * 512, rnd() * 512, 1 + rnd() * 2, 1 + rnd() * 2);
+  }
+  if (kind === "ground") {
+    // Short broken stems and leaf litter, rather than a clean flat lawn.
+    for (let i = 0; i < 5000; i++) {
+      const x = rnd() * 512,
+        y = rnd() * 512;
+      c.strokeStyle = i % 3 ? "#c0af7f55" : "#323f3270";
+      c.lineWidth = 0.5 + rnd();
+      c.beginPath();
+      c.moveTo(x, y);
+      c.lineTo(x + (rnd() - 0.5) * 11, y + rnd() * 9);
+      c.stroke();
+    }
+  } else {
+    // Hairline asphalt fractures; no repeating painted lane stripe.
+    for (let i = 0; i < 35; i++) {
+      let x = rnd() * 512,
+        y = rnd() * 512;
+      c.strokeStyle = "#30352d65";
+      c.lineWidth = 0.5 + rnd();
+      c.beginPath();
+      c.moveTo(x, y);
+      for (let j = 0; j < 8; j++) {
+        x += (rnd() - 0.5) * 24;
+        y += rnd() * 10;
+        c.lineTo(x, y);
+      }
+      c.stroke();
+    }
   }
   const tex = new T.CanvasTexture(canvas);
   tex.colorSpace = T.SRGBColorSpace;
@@ -98,4 +127,39 @@ export function leafCrown() {
   g.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
   g.computeVertexNormals();
   return g;
+}
+
+export function skyTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 512;
+  const c = canvas.getContext("2d")!,
+    gradient = c.createLinearGradient(0, 0, 0, 512);
+  gradient.addColorStop(0, "#708792");
+  gradient.addColorStop(0.42, "#a5b8bd");
+  gradient.addColorStop(0.5, "#b1bfc0");
+  gradient.addColorStop(1, "#b1bfc0");
+  c.fillStyle = gradient;
+  c.fillRect(0, 0, 1024, 512);
+  let seed = 772;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  c.filter = "blur(15px)";
+  for (let i = 0; i < 95; i++) {
+    const x = rnd() * 1024,
+      y = 65 + rnd() * 160,
+      w = 25 + rnd() * 110;
+    c.fillStyle = i % 3 ? "#e0e4df28" : "#5b717c18";
+    for (const dx of [-1024, 0, 1024]) {
+      c.beginPath();
+      c.ellipse(x + dx, y, w, 8 + rnd() * 20, 0, 0, Math.PI * 2);
+      c.fill();
+    }
+  }
+  const texture = new T.CanvasTexture(canvas);
+  texture.colorSpace = T.SRGBColorSpace;
+  texture.mapping = T.EquirectangularReflectionMapping;
+  return texture;
 }

@@ -1,3 +1,22 @@
+# Forest and FPV presentation QA — 3 November 2026
+
+## Verified
+- npm install completed with zero reported vulnerabilities. All 31 tests and the production build passed. Existing bundle advisory remains: approximately 601kB / 165kB gzip.
+- Replaced solid tree/bush silhouettes with instanced branch cards and original alpha-masked atlases. Retained the original tree and thicket gameplay cover volumes. Added original bark, leaf-litter, road wear, geometric grass, cloudy sky and sagging camouflage nets.
+- Added an FPV-only render pass capped at 1280×720 (85% viewport resolution below that cap), subtle colour bleed, desaturation, vignette and luminance-scaled grain. HUD/reticle render separately. Recon renders directly; thermal keeps the foliage alpha masks. Reduced motion freezes grain.
+- Isolated Chromium at 1280×720: selected Officer hunt, confirmed no initial marks, aimed using arrows/zoom and identified with left click. Normal/thermal and pause/resume worked. Pause froze the timer and patrol. Physically flew an FPV into the officer; one sortie, 4,195 points, automatic unpaused recon return. N opened the next board.
+- 800×600: selected convoy/cache cards, started, opened Pause, launched via its button, climbed above 12m, switched thermal, returned to recon and reopened Missions. Pause controls fit.
+- Final foliage build: flew from base into the south-west hideout at approximately 2m altitude, toggled normal/thermal, zoomed, enabled reduced motion, resized to 800×600, flew through the soft thicket and climbed out with 100% hull. Launched again and flew into solid base cover: FPV LOST followed by automatic unpaused recon return.
+- At 1440×900, verified the fixed recon orbit resisted movement input, found the cache with zoom, confirmed E did not mark and left-click did, inspected normal/thermal, then physically flew into the cache. Awarded 750 points, one destroyed cache, active fire and automatic unpaused recon return. Inspected visual-cache-spotted-normal.png, visual-cache-spotted-thermal.png and visual-cache-burning-recon.png. The old unzoomed camera-steering script missed its aim tolerance; the precise zoomed run passed.
+- Final browser console: zero errors and warnings.
+- A 90-frame requestAnimationFrame sample while hovering inside the thicket at 1280×720 recorded median 16.7ms and p95 16.8ms on this machine. This is a short local sample, not a device-wide performance guarantee.
+- Screenshot review caught grass-card striping from above and excessive grain in dark thermal views. Replaced the grass cards with bent blade geometry and reduced grain in dark pixels. Inspected forest-confirmed.png, forest-fpv.png, forest-low-normal.png, forest-low-thermal.png and forest-low-small.png. Artifacts are ignored under output/playwright/.
+
+## Limits
+Original procedural assets remain visibly stylized at close range, particularly infantry and flat terrain. Coarse vegetation cover can block sight across visible leaf gaps. Full convoy completion and mission failure variants were not replayed in this visual pass. Browser flight steering used read-only diagnostic coordinates; no teleporting, health edits or clock acceleration. Other browsers, mobile and low-end hardware remain untested.
+
+---
+
 # Minimal UI QA — 2 November 2026
 
 ## Verified

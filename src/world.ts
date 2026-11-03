@@ -1,5 +1,6 @@
 import * as T from "three";
 import { createModels } from "./models";
+import { barkTexture } from "./foliage";
 import { surfaceTexture } from "./surfaces";
 import { LAUNCH, TRENCHES, reserved } from "./layout";
 type MaterialFactory = (color: number, hot?: boolean) => T.MeshStandardMaterial;
@@ -14,6 +15,8 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     metal = mat(0x3f4e49),
     black = mat(0x242b29),
     pale = mat(0xb4b9a2);
+  wood.map = barkTexture();
+  wood.userData.sensorMap = wood.map;
   const models = createModels(mat);
   const friendlyId = new T.MeshBasicMaterial({ color: 0x78dfff });
   const friendlies: { name: string; position: T.Vector3 }[] = [];
@@ -105,6 +108,7 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     ctx.fillRect(rand() * 128, rand() * 128, 4 + rand() * 12, 3 + rand() * 8);
   }
   const texture = new T.CanvasTexture(texCanvas);
+  texture.colorSpace = T.SRGBColorSpace;
   texture.wrapS = texture.wrapT = T.RepeatWrapping;
   texture.repeat.set(3, 4);
   const net = mat(0xffffff);
@@ -113,6 +117,15 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
   net.side = T.DoubleSide;
   function canopy(x: number, z: number, w: number, d: number) {
     const mesh = new T.Mesh(new T.PlaneGeometry(w, d, 8, 8), net);
+    const vertices = mesh.geometry.getAttribute("position");
+    for (let i = 0; i < vertices.count; i++) {
+      const nx = vertices.getX(i) / (w * 0.5),
+        ny = vertices.getY(i) / (d * 0.5);
+      vertices.setZ(i, -0.55 * (1 - nx * nx) * (1 - ny * ny));
+    }
+    mesh.geometry.computeVertexNormals();
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.set(x, 3.1, z);
     scene.add(mesh);
