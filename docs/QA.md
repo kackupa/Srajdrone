@@ -1,3 +1,21 @@
+# Terrain, dense woodland and fortification rebuild — 3 November 2026
+
+## Verified
+- npm install reported zero vulnerabilities. All 35 tests passed; the production build passed (approximately 584kB / 161kB gzip, existing size advisory).
+- Replaced the single flat ground plane with chunked rolling terrain, real crater depressions and exact trench openings. Roads, base and objective pockets stay level. Vegetation and infantry use the shared height field.
+- Increased planting density substantially and extended woodland beyond the playable boundary. Kept clear corridors and expanded pillbox planting exclusions after inspection flights revealed canopy overlap.
+- Replaced placeholder pillbox blocks with rounded concrete walls, a recessed front opening, rear doorway, substantial roof, soil cover, sandbags and debris. Trenches gained timber lining, irregular spoil and short covered recesses. Infantry gained revised head/neck proportions, bent arms, rounded equipment, straps, knee pads and original camouflage.
+- Added swept terrain collision for lateral impacts into slopes. Tests cover clear roads/objectives, terrain variation, trench floors/openings, intermediate hills with clear sweep endpoints, and accelerated terrain raycasts against ordinary Three.js results. Shared-edge duplicate hits are compared by unique distances.
+- Isolated Chromium, 1280×720: selected Officer hunt, started without marks, searched using arrows/zoom, left-click identified the moving officer, toggled thermal and checked pause froze patrol/timer. Flew an actual FPV strike in one sortie: 4,180 points, automatic unpaused recon return, N reopened the next mission board. No teleporting, health edits or time acceleration.
+- Inspected rebuild-recon.png, rebuild-low-forest.png and officer mission screenshots. Close-up flight attempts encountered canopy collisions and enemy gunfire; they were not claimed as completed inspection routes. Separately inspected the actual model factories in an ignored static QA viewer: rebuild-model-pillbox.png, rebuild-model-trench.png and rebuild-model-soldier.png. Corrected a head/neck gap found in that review.
+- Optimized boolean cover queries to stop at the first obstruction, grouped tree/brush proxies spatially, simplified invisible canopy geometry and accelerated static terrain rays. Final 90-frame sample in the dense FPV forest view: median 33.2ms, p95 33.5ms (about 30fps). Earlier samples had 50–67ms p95 spikes. This is a local short sample, not a universal performance claim.
+- Final game console: zero errors/warnings. Temporary scripts, previews and screenshots remain ignored under output/playwright/.
+
+## Limits
+The scene remains an original procedural browser-game environment, not photorealistic footage or a reproduction of a real defensive position. Trench layout remains simplified, cover/collision volumes are approximate, and foliage gaps are not individually simulated. The 30fps local sample is a performance limitation relative to the previous sparse scene. Low-end hardware, mobile, other browsers, all convoy/cache variants and natural human search difficulty were not comprehensively retested. Full officer completion passed; the static model viewer is visual QA, not a gameplay test.
+
+---
+
 # Forest and FPV presentation QA — 3 November 2026
 
 ## Verified

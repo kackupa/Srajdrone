@@ -33,3 +33,11 @@ These are appearance references only. All mesh geometry and camouflage/fabric/we
 
 ## User-supplied forest footage — 3 November 2026
 The supplied MP4 and still image informed the visual direction: thin tree silhouettes, dense uneven foliage, dry ground cover, weathered camouflage netting, muted sky and a softened low-resolution camera feed. Only appearance was used. No footage, frames, watermarks, logos or real-world operational details are included in the game. Branch atlases, grass geometry, bark, ground, road and sky textures are original procedural work. The FPV feed treatment is a readability-conscious game effect, not a calibrated simulation of a real camera.
+
+## Terrain and fortification research — 3 November 2026
+- [Suwałki Forest District, Lasy Nadleśnictwa](https://suwalki.bialystok.lasy.gov.pl/lasy-nadlesnictwa), published 12 January 2024: primary regional landscape reference. Describes varied glacial relief, including rolling uplands and flatter sandur areas, pine-dominated forest and mixed species. Used as a reason to replace the flat test plane with a fictional rolling woodland map.
+- [Reuters Connect, frontline dugout in Dnipropetrovsk region](https://www.reutersconnect.com/item/ukrainian-servicemen-rest-near-a-dugout-at-their-position-on-the-frontline-in-dnipropetrovsk-region/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX1JDMjNGTEFJWUo0VQ), photo dated 23 May 2026: read the caption and metadata; the full image endpoint failed to load. Do not treat this as a fully inspected photo.
+- [AP, Four years of war in Ukraine in photos](https://www.ap.org/news-highlights/spotlights/2026/4-years-of-war-in-ukraine-in-photos/): a 2026 retrospective containing older imagery. Its charred-forest caption refers to 16 September 2023, not a current view of that battlefield.
+- Image search also returned forest-trench and camouflaged-dugout reference thumbnails. These supplied broad appearance cues only; no layouts, operational lessons, dimensions or construction specifications were reproduced.
+
+The fortifications are original fictional game assets with simplified shapes. No external images, logos, maps or third-party meshes were imported. This research does not mean the game represents the current war comprehensively.

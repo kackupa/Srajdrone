@@ -2,7 +2,9 @@ import * as T from "three";
 import { createModels } from "./models";
 import { barkTexture } from "./foliage";
 import { surfaceTexture } from "./surfaces";
-import { LAUNCH, TRENCHES, reserved } from "./layout";
+import { weatherTexture } from "./fortifications";
+import { terrainMeshes } from "./terrain";
+import { LAUNCH, TRENCHES, reserved, terrainHeight, CRATERS } from "./layout";
 type MaterialFactory = (color: number, hot?: boolean) => T.MeshStandardMaterial;
 export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
   const solids: T.Mesh[] = [],
@@ -15,6 +17,10 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     metal = mat(0x3f4e49),
     black = mat(0x242b29),
     pale = mat(0xb4b9a2);
+  soil.map = weatherTexture("soil");
+  sand.map = weatherTexture("cloth");
+  soil.userData.sensorMap = soil.map;
+  sand.userData.sensorMap = sand.map;
   wood.map = barkTexture();
   wood.userData.sensorMap = wood.map;
   const models = createModels(mat);
@@ -30,7 +36,11 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     z: number,
     solid = true,
   ) {
-    const mesh = new T.Mesh(new T.BoxGeometry(w, h, d), m);
+    const mesh = new T.Mesh(
+      m === sand ? new T.SphereGeometry(1, 10, 6) : new T.BoxGeometry(w, h, d),
+      m,
+    );
+    if (m === sand) mesh.scale.set(w / 2, h / 2, d / 2);
     mesh.position.set(x, y, z);
     mesh.castShadow = h > 0.3;
     mesh.receiveShadow = true;
@@ -41,30 +51,11 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     }
     return mesh;
   }
-  const shape = new T.Shape();
-  shape.moveTo(-900, -900);
-  shape.lineTo(900, -900);
-  shape.lineTo(900, 900);
-  shape.lineTo(-900, 900);
-  shape.closePath();
-  for (const t of TRENCHES) {
-    const hole = new T.Path(),
-      x = t.x - t.w / 2,
-      y = -t.z - t.d / 2;
-    hole.moveTo(x, y);
-    hole.lineTo(x, y + t.d);
-    hole.lineTo(x + t.w, y + t.d);
-    hole.lineTo(x + t.w, y);
-    hole.closePath();
-    shape.holes.push(hole);
-  }
   const groundMaterial = mat(0xffffff);
   groundMaterial.map = surfaceTexture("ground");
-  const ground = new T.Mesh(new T.ShapeGeometry(shape), groundMaterial);
-  ground.receiveShadow = true;
-  ground.rotation.x = -Math.PI / 2;
-  scene.add(ground);
-  blockers.push(ground);
+  const grounds = terrainMeshes(groundMaterial);
+  grounds.forEach((g) => scene.add(g));
+  blockers.push(...grounds);
   for (const t of TRENCHES) {
     box(t.w, 0.15, t.d, mud, t.x, -t.depth - 0.075, t.z, false);
     // Recessed timber walls, with a small earth lip and sandbags at ground level.
@@ -94,6 +85,80 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
         false,
       );
   }
+  // Irregular spoil banks, timber revetments and covered recesses.
+  const logGeometry = new T.CylinderGeometry(0.13, 0.16, 1, 7);
+  const timberRows: T.Matrix4[] = [],
+    spoilRows: T.Matrix4[] = [];
+  const detailDummy = new T.Object3D();
+  for (const t of TRENCHES) {
+    const alongZ = t.d > t.w,
+      length = alongZ ? t.d : t.w;
+    for (let n = 0; n < length; n += 0.65)
+      for (const side of [-1, 1]) {
+        const x = alongZ ? t.x + side * (t.w / 2 - 0.19) : t.x - t.w / 2 + n;
+        const z = alongZ ? t.z - t.d / 2 + n : t.z + side * (t.d / 2 - 0.19);
+        detailDummy.position.set(x, -t.depth * 0.49, z);
+        detailDummy.rotation.set(0, n * 0.1, side * 0.035);
+        detailDummy.scale.set(1, t.depth * 0.92, 1);
+        detailDummy.updateMatrix();
+        timberRows.push(detailDummy.matrix.clone());
+        if (n % 1.3 < 0.66) {
+          detailDummy.position.set(
+            alongZ ? t.x + side * (t.w / 2 + 1.2) : x,
+            0.22 + Math.sin(n * 2) * 0.13,
+            alongZ ? z : t.z + side * (t.d / 2 + 1.2),
+          );
+          detailDummy.rotation.set(0, n * 0.4, 0.1 * Math.sin(n));
+          detailDummy.scale.set(
+            alongZ ? 1.25 : 1.5,
+            0.5 + (Math.sin(n) * 0.5 + 0.5) * 0.38,
+            alongZ ? 1.5 : 1.25,
+          );
+          detailDummy.updateMatrix();
+          spoilRows.push(detailDummy.matrix.clone());
+        }
+      }
+    const cx = alongZ ? t.x : t.x - t.w * 0.28,
+      cz = alongZ ? t.z + t.d * 0.28 : t.z;
+    // Short roofed recess, with timber ends visible beneath earth and loose sacks.
+    const roof = box(
+      alongZ ? t.w + 1 : 5,
+      0.4,
+      alongZ ? 5 : t.d + 1,
+      wood,
+      cx,
+      0.45,
+      cz,
+    );
+    box(
+      alongZ ? t.w + 1.4 : 5.5,
+      0.45,
+      alongZ ? 5.5 : t.d + 1.4,
+      soil,
+      cx,
+      0.83,
+      cz,
+    );
+    for (let j = -2; j <= 2; j++)
+      box(0.75, 0.32, 0.5, sand, cx + j * 0.72, 1.18, cz + 1.6, false);
+    roof.receiveShadow = true;
+  }
+  const logs = new T.InstancedMesh(logGeometry, wood, timberRows.length);
+  timberRows.forEach((m, i) => logs.setMatrixAt(i, m));
+  logs.castShadow = true;
+  logs.receiveShadow = true;
+  logs.raycast = () => {};
+  scene.add(logs);
+  const spoil = new T.InstancedMesh(
+    new T.IcosahedronGeometry(1, 1),
+    soil,
+    spoilRows.length,
+  );
+  spoilRows.forEach((m, i) => spoil.setMatrixAt(i, m));
+  spoil.castShadow = true;
+  spoil.receiveShadow = true;
+  spoil.raycast = () => {};
+  scene.add(spoil);
   const texCanvas = document.createElement("canvas");
   texCanvas.width = 128;
   texCanvas.height = 128;
@@ -211,24 +276,41 @@ export function buildBattlefield(scene: T.Scene, mat: MaterialFactory) {
     false,
   ).userData.friendly = "FRIENDLY SUPPORT";
   canopy(-123, 180, 5, 8);
-  // Crater scars and shattered trees give the center a battle-worn silhouette.
-  for (let i = 0; i < 24; i++) {
-    const x = (rand() - 0.5) * 145,
-      z = (rand() - 0.5) * 160;
-    if (Math.abs(x) < 10 || Math.abs(z + 55) < 8 || reserved(x, z)) continue;
-    const crater = new T.Mesh(new T.CircleGeometry(2 + rand() * 3, 12), mud);
-    crater.rotation.x = -Math.PI / 2;
-    crater.position.set(x, 0.025, z);
-    scene.add(crater);
-    const rim = new T.Mesh(new T.TorusGeometry(2.8, 0.35, 4, 12), soil);
-    rim.rotation.x = Math.PI / 2;
-    rim.scale.z = 0.3;
-    rim.position.set(x, 0.08, z);
-    scene.add(rim);
-    const stump = box(0.65, 3 + rand() * 4, 0.65, wood, x + 4, 1.8, z + 2);
-    stump.rotation.z = (rand() - 0.5) * 0.5;
-    const log = box(0.6, 0.6, 5, wood, x + 3, 0.35, z - 3);
-    log.rotation.y = rand() * Math.PI;
+  // Craters are sculpted into the shared height field, with conforming dark scars.
+  for (const c of CRATERS) {
+    const geometry = new T.CircleGeometry(c.r * 0.8, 20);
+    geometry.rotateX(-Math.PI / 2);
+    const p = geometry.getAttribute("position");
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i) + c.x,
+        z = p.getZ(i) + c.z;
+      p.setXYZ(i, x, terrainHeight(x, z) + 0.03, z);
+    }
+    geometry.computeVertexNormals();
+    const scar = new T.Mesh(geometry, mud);
+    scar.receiveShadow = true;
+    scar.raycast = () => {};
+    scene.add(scar);
+    const stump = box(
+      0.55,
+      4,
+      0.55,
+      wood,
+      c.x + 4,
+      terrainHeight(c.x + 4, c.z + 2) + 2,
+      c.z + 2,
+    );
+    stump.rotation.z = 0.18;
+    const log = box(
+      0.6,
+      0.6,
+      5,
+      wood,
+      c.x + 3,
+      terrainHeight(c.x + 3, c.z - 3) + 0.35,
+      c.z - 3,
+    );
+    log.rotation.y = 0.7;
   }
   return { solids, blockers, soil, mud, wood, sand, camo, friendlies };
 }

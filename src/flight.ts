@@ -67,3 +67,38 @@ export function boxContact(a: V, b: V, min: V, max: V): number | null {
   }
   return lo;
 }
+
+// Sweep against the same height field used for rendering, including horizontal
+// flight into slopes. Sampling is finer than terrain features; bisect first hit.
+export function groundContact(
+  a: V,
+  b: V,
+  height: (x: number, z: number) => number,
+  r = 0.45,
+): number | null {
+  const steps = Math.max(
+    1,
+    Math.ceil(Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) / 0.5),
+  );
+  const clearance = (t: number) =>
+    a.y +
+    (b.y - a.y) * t -
+    height(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t) -
+    r;
+  let previous = 0;
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    if (clearance(t) < -1e-5) {
+      let lo = previous,
+        hi = t;
+      for (let j = 0; j < 12; j++) {
+        const m = (lo + hi) / 2;
+        if (clearance(m) < 0) hi = m;
+        else lo = m;
+      }
+      return hi;
+    }
+    previous = t;
+  }
+  return null;
+}

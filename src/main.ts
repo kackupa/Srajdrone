@@ -1,9 +1,18 @@
 import * as T from "three";
 import { createModels } from "./models";
-import { surfaceTexture, pineCrown, leafCrown, skyTexture } from "./surfaces";
+import { surfaceTexture, skyTexture } from "./surfaces";
 import { foliageMaterial, branchCards, barkTexture } from "./foliage";
+import { coverInstances } from "./cover";
+import { buildPillbox } from "./fortifications";
 import { DroneFeed } from "./feed";
-import { FLIGHT, steer, contact, movingContact, boxContact } from "./flight";
+import {
+  FLIGHT,
+  steer,
+  contact,
+  movingContact,
+  boxContact,
+  groundContact,
+} from "./flight";
 import "./style.css";
 import { buildUnderstory } from "./understory";
 import { CONVOY } from "./mission";
@@ -26,6 +35,7 @@ import {
   PILLBOXES,
   CACHES,
   groundHeight,
+  terrainHeight,
   reserved,
 } from "./layout";
 import { buildBattlefield } from "./world";
@@ -167,24 +177,32 @@ const trunks: T.Matrix4[] = [],
   birchTrunks: T.Matrix4[] = [],
   broadCrowns: T.Matrix4[][] = [[], [], []];
 const dummy = new T.Object3D();
-for (let i = 0; i < 1150; i++) {
-  const x = (random() - 0.5) * 470,
-    z = (random() - 0.5) * 470;
+for (let i = 0; i < 9600; i++) {
+  const background = i >= 6000;
+  const x = (random() - 0.5) * (background ? 1300 : 470),
+    z = (random() - 0.5) * (background ? 1300 : 470);
+  if (background && Math.abs(x) < 245 && Math.abs(z) < 245) continue;
   if (Math.abs(x) < 17 || Math.abs(z + 55) < 13 || reserved(x, z)) continue;
-  const h = 9 + random() * 14,
-    r = 2.5 + random() * 3;
-  dummy.position.set(x, h * 0.28, z);
+  const h = (background ? 20 : 14) + random() * 14,
+    r = (background ? 7 : 4) + random() * 3,
+    floor = terrainHeight(x, z);
+  dummy.position.set(x, floor + h * 0.28, z);
   dummy.scale.set(0.55, h * 0.56, 0.55);
   dummy.updateMatrix();
   (i % 4 === 0 ? birchTrunks : trunks).push(dummy.matrix.clone());
   for (let j = 0; j < 2; j++) {
-    dummy.position.set(x, h * (0.52 + j * 0.2), z);
+    dummy.position.set(x, floor + h * (0.52 + j * 0.2), z);
     dummy.scale.set(r * (1 - j * 0.2), h * 0.56, r * (1 - j * 0.2));
     dummy.updateMatrix();
     (i % 4 === 0 ? broadCrowns : crowns)[i % 3].push(dummy.matrix.clone());
   }
-  treeColliders.push({ p: new T.Vector3(x, h * 0.52, z), r: r * 0.85 });
-  treeColliders.push({ p: new T.Vector3(x, h * 0.23, z), r: 1.1 });
+  if (!background) {
+    treeColliders.push({
+      p: new T.Vector3(x, floor + h * 0.52, z),
+      r: r * 0.85,
+    });
+    treeColliders.push({ p: new T.Vector3(x, floor + h * 0.23, z), r: 1.1 });
+  }
 }
 function instances(g: T.BufferGeometry, m: T.Material, list: T.Matrix4[]) {
   const o = new T.InstancedMesh(g, m, list.length);
@@ -192,24 +210,22 @@ function instances(g: T.BufferGeometry, m: T.Material, list: T.Matrix4[]) {
   o.receiveShadow = true;
   list.forEach((v, i) => o.setMatrixAt(i, v));
   scene.add(o);
-  sightBlockers.push(o);
+  o.raycast = () => {};
+  sightBlockers.push(...coverInstances(scene, g, list));
 }
 instances(new T.CylinderGeometry(1, 1, 1, 5), trunk, trunks);
 instances(new T.CylinderGeometry(0.7, 1, 1, 6), birch, birchTrunks);
-const pineGeometry = pineCrown(),
-  broadGeometry = leafCrown();
+const pineGeometry = new T.ConeGeometry(1, 1, 6),
+  broadGeometry = new T.SphereGeometry(1, 6, 4).scale(1, 0.5, 1);
 // Preserve the established coarse cover envelopes, independent of alpha cards.
-const coverMaterial = new T.MeshBasicMaterial({ visible: false });
+
 function foliageInstances(
   shape: T.BufferGeometry,
   rows: T.Matrix4[][],
   broad: boolean,
 ) {
   rows.forEach((list, i) => {
-    const proxy = new T.InstancedMesh(shape, coverMaterial, list.length);
-    list.forEach((matrix, j) => proxy.setMatrixAt(j, matrix));
-    scene.add(proxy);
-    sightBlockers.push(proxy);
+    sightBlockers.push(...coverInstances(scene, shape, list));
     const material = broad ? mat([0xc5c6aa, 0xd1c6a1, 0xa5b79a][i]) : leafs[i];
     const visible = new T.InstancedMesh(
       branchCards(broad),
@@ -229,7 +245,13 @@ for (let i = 0; i < 55; i++) {
   const x = (random() - 0.5) * 450,
     z = (random() - 0.5) * 450;
   if (Math.abs(x) < 18 || Math.abs(z + 55) < 14 || reserved(x, z)) continue;
-  mesh(new T.DodecahedronGeometry(1 + random() * 2), dirt, x, 0.5, z);
+  mesh(
+    new T.DodecahedronGeometry(1 + random() * 2),
+    dirt,
+    x,
+    terrainHeight(x, z) + 0.5,
+    z,
+  );
 }
 type Target = {
   id: number;
@@ -307,22 +329,7 @@ function target(
     box(0.55, 0.45, 0.6, warm, 2.05, 0.3, 1.35, g);
     box(0.1, 0.7, 0.1, bands, 2.2, 0.65, 1.35, g);
   } else if (kind === "pillbox") {
-    const concrete = mat(0x6a705e);
-    box(7, 2.4, 7, concrete, 0, 1.2, 0, g);
-    box(8.4, 0.65, 8.4, battlefield.soil, 0, 2.7, 0, g);
-    box(5, 0.5, 0.05, dark, 0, 1.7, -3.52, g);
-    for (let i = 0; i < 12; i++)
-      box(
-        0.9,
-        0.09,
-        1.4,
-        battlefield.camo,
-        ((i % 4) - 1.5) * 1.7,
-        3.08,
-        (Math.floor(i / 4) - 1) * 2,
-        g,
-      );
-    sightBlockers.push(...g.children.filter((o) => o instanceof T.Mesh));
+    sightBlockers.push(...buildPillbox(g, mat));
   } else if (kind === "tank") {
     models.tank(g);
   } else if (kind === "truck") {
@@ -981,18 +988,27 @@ type Shot = {
   damage: number;
 };
 const shots: Shot[] = [];
+const sightHits: T.Intersection[] = [];
+function anyCover(objects: T.Object3D[]) {
+  for (const object of objects) {
+    sightHits.length = 0;
+    object.raycast(sightRay, sightHits);
+    if (sightHits.length) return true;
+  }
+  return false;
+}
 function blocked(a: T.Vector3, b: T.Vector3) {
   const d = b.clone().sub(a),
     length = d.length();
   if (length < 0.01) return false;
   sightRay.set(a, d.normalize());
   sightRay.far = length;
-  return sightRay.intersectObjects(sightBlockers, false).length > 0;
+  return anyCover(sightBlockers);
 }
 function obscured(a: T.Vector3, b: T.Vector3) {
   if (a.distanceToSquared(b) < 0.0001) return false;
   if (blocked(a, b)) return true;
-  return sightRay.intersectObjects(understory.vision, false).length > 0;
+  return anyCover(understory.vision);
 }
 function disposeShot(i: number) {
   scene.remove(shots[i].line);
@@ -1428,14 +1444,15 @@ function frame(dt: number) {
           victim = undefined;
         }
       }
-      if (next.y < groundHeight(next.x, next.z) + 0.45 && velocity.y < 0) {
-        const n =
-          (position.y - (groundHeight(next.x, next.z) + 0.45)) /
-          (position.y - next.y);
-        if (n < earliest) {
-          earliest = n;
-          victim = undefined;
-        }
+      const terrainHit = groundContact(
+        position,
+        next,
+        groundHeight,
+        FLIGHT.radius,
+      );
+      if (terrainHit !== null && terrainHit < earliest) {
+        earliest = terrainHit;
+        victim = undefined;
       }
       if (earliest !== Infinity) {
         position.lerp(next, earliest);

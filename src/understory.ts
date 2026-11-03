@@ -1,6 +1,7 @@
 import * as T from "three";
+import { coverInstances } from "./cover";
 import { foliageMaterial, branchCards, grassBlades } from "./foliage";
-import { CACHES, HIDEOUTS, reserved } from "./layout";
+import { CACHES, HIDEOUTS, reserved, terrainHeight } from "./layout";
 type MaterialFactory = (color: number, hot?: boolean) => T.MeshStandardMaterial;
 export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
   const vision: T.Object3D[] = [],
@@ -20,7 +21,7 @@ export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
     for (let i = 0; i < 3; i++) {
       dummy.position.set(
         x + (rand() - 0.5) * 1.8,
-        (0.7 + rand() * 0.45) * size,
+        terrainHeight(x, z) + (0.7 + rand() * 0.45) * size,
         z + (rand() - 0.5) * 1.8,
       );
       dummy.scale.set(
@@ -34,12 +35,12 @@ export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
     }
   }
   // Scattered low vegetation leaves roads, launch and existing fortifications accessible.
-  for (let i = 0; i < 700; i++) {
+  for (let i = 0; i < 1800; i++) {
     const x = (rand() - 0.5) * 450,
       z = (rand() - 0.5) * 450;
     if (Math.abs(x) < 12 || Math.abs(z + 55) < 10 || reserved(x, z)) continue;
     shrub(x, z, 0.65 + rand() * 0.7);
-    dummy.position.set(x + 3, 0.4, z);
+    dummy.position.set(x + 3, terrainHeight(x + 3, z) + 0.4, z);
     dummy.rotation.set(0, rand() * Math.PI, 0);
     dummy.scale.set(1.5, 0.8, 1.5);
     dummy.updateMatrix();
@@ -83,16 +84,9 @@ export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
     solid(6, 0.65, 0.7, c.x, c.z - 6, wood);
   }
   for (let i = 0; i < 3; i++) {
-    const bush = new T.InstancedMesh(
-      new T.IcosahedronGeometry(1, 1),
-      new T.MeshBasicMaterial({ visible: false }),
-      rows[i].length,
+    vision.push(
+      ...coverInstances(scene, new T.IcosahedronGeometry(1, 0), rows[i]),
     );
-    rows[i].forEach((matrix, j) => bush.setMatrixAt(j, matrix));
-    scene.add(bush);
-    // Existing cover volumes remain authoritative; the visible thicket is leafy.
-
-    vision.push(bush);
     const leaves = new T.InstancedMesh(
       branchCards(true),
       foliageMaterial(colors[i], "leaf"),
@@ -110,7 +104,7 @@ export function buildUnderstory(scene: T.Scene, mat: MaterialFactory) {
       z = (rand() - 0.5) * 470;
     if (Math.abs(x) < 10 || Math.abs(z + 55) < 8 || reserved(x, z)) continue;
     const h = 0.35 + rand() * 1.05;
-    dummy.position.set(x, h * 0.5, z);
+    dummy.position.set(x, terrainHeight(x, z) + h * 0.5, z);
     dummy.rotation.set(0, rand() * Math.PI, 0);
     dummy.scale.set(0.7 + rand() * 1.4, h, 0.7 + rand() * 1.4);
     dummy.updateMatrix();
